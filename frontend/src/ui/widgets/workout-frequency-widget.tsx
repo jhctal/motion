@@ -3,7 +3,10 @@ import { useWorkoutSessions } from "../../api/workouts/use-workout-sessions";
 const WEEKDAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
 
 function toDayKey(d: Date) {
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 // Intensity ramp for a day's cell: 0 sessions -> neutral, 1 -> orange-400, 2+ -> orange-600.
@@ -57,16 +60,19 @@ export function WorkoutFrequencyWidget() {
   return (
     <div className="border rounded-lg p-4 flex flex-col gap-3 h-full">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-400 uppercase tracking-wide">
+        <p className="text-xs text-gray-400 dark:text-gray-300 uppercase tracking-wide">
           Workout Frequency
         </p>
         <p className="text-xs text-gray-500">{monthLabel}</p>
       </div>
+      <p className="text-xs text-gray-500">
+        {activeDays} day{activeDays !== 1 ? "s" : ""} active
+      </p>
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading…</p>
       ) : (
         <div className="flex items-start gap-4">
-          <div className="flex gap-1">
+          <div className="flex gap-1 w-full">
             <div className="grid grid-rows-7 gap-1 justify-center items-center">
               {WEEKDAY_LABELS.map((label, i) => (
                 <span
@@ -106,9 +112,6 @@ export function WorkoutFrequencyWidget() {
               })}
             </div>
           </div>
-          <p className="text-xs text-gray-500 ml-auto self-end">
-            {activeDays} day{activeDays !== 1 ? "s" : ""} active
-          </p>
         </div>
       )}
     </div>

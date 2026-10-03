@@ -37,7 +37,9 @@ const MobileNav = ({ open, onClose }: MobileNavProps) => {
       <div
         onClick={onClose}
         className={`lg:hidden fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ${
-          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          open
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
         }`}
       />
 
@@ -55,7 +57,7 @@ const MobileNav = ({ open, onClose }: MobileNavProps) => {
           <button
             type="button"
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800"
+            className="w-10 h-10 flex items-center justify-center text-gray-500 dark:text-gray-400 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800"
           >
             <XIcon size={22} />
           </button>
@@ -78,7 +80,11 @@ const MobileNav = ({ open, onClose }: MobileNavProps) => {
         <div className="mt-auto pt-2 border-t border-gray-100 dark:border-zinc-800">
           <div className="flex items-center justify-between gap-2 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-300">
             <span className="flex items-center gap-2">
-              {theme === "dark" ? <MoonIcon size={18} /> : <SunIcon size={18} />}
+              {theme === "dark" ? (
+                <MoonIcon size={18} />
+              ) : (
+                <SunIcon size={18} />
+              )}
               {theme === "dark" ? "Dark mode" : "Light mode"}
             </span>
             <Switch

@@ -35,7 +35,10 @@ const FilterableExerciseSelect = ({
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     }
@@ -70,13 +73,15 @@ const FilterableExerciseSelect = ({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        className="w-full p-4 border border-dashed rounded bg-transparent text-sm text-gray-400 capitalize hover:border-orange-400 transition-colors disabled:opacity-40 text-left"
+        className="w-full p-4 border border-dashed rounded bg-transparent text-sm text-gray-400 dark:text-gray-300 capitalize hover:border-orange-400 transition-colors disabled:opacity-40 text-left"
       >
         {placeholder}
       </button>
 
       {open && (
-        <div className={`absolute z-50 left-0 right-0 bg-zinc-900 border border-zinc-700 rounded shadow-lg ${opensUpward ? "bottom-full mb-1" : "top-full mt-1"}`}>
+        <div
+          className={`absolute z-50 left-0 right-0 bg-zinc-900 border border-zinc-700 rounded shadow-lg ${opensUpward ? "bottom-full mb-1" : "top-full mt-1"}`}
+        >
           <div className="p-2 border-b border-zinc-700">
             <input
               ref={inputRef}

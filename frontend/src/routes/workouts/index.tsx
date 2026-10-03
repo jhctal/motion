@@ -68,7 +68,7 @@ function WorkoutIndex() {
       {/* All workouts */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-gray-400 dark:text-gray-300">
             {workouts?.length ?? 0} workouts
           </span>
           <Link
@@ -102,7 +102,14 @@ function PendingWorkoutRow({
   isApproving,
   isRejecting,
 }: {
-  workout: { _id: string; name: string; difficultyLevel?: string; estimatedDurationMinutes?: number; exercises: unknown[]; user: { first_name: string; last_name: string } };
+  workout: {
+    _id: string;
+    name: string;
+    difficultyLevel?: string;
+    estimatedDurationMinutes?: number;
+    exercises: unknown[];
+    user: { first_name: string; last_name: string };
+  };
   onApprove: () => void;
   onReject: () => void;
   isApproving: boolean;
@@ -114,7 +121,7 @@ function PendingWorkoutRow({
     <div className="border rounded-lg p-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
         <p className="font-semibold capitalize text-sm">{workout.name}</p>
-        <p className="text-xs text-gray-400 capitalize mt-0.5">
+        <p className="text-xs text-gray-400 dark:text-gray-300 capitalize mt-0.5">
           {workout.difficultyLevel} · {workout.estimatedDurationMinutes} mins ·{" "}
           {workout.exercises.length} exercises
         </p>
@@ -134,12 +141,15 @@ function PendingWorkoutRow({
           <>
             <button
               onClick={() => setConfirming(false)}
-              className="px-3 py-1.5 border text-xs text-gray-400 rounded-lg hover:bg-white/5"
+              className="px-3 py-1.5 border text-xs text-gray-400 dark:text-gray-300 rounded-lg hover:bg-white/5"
             >
               Cancel
             </button>
             <button
-              onClick={() => { onReject(); setConfirming(false); }}
+              onClick={() => {
+                onReject();
+                setConfirming(false);
+              }}
               disabled={isRejecting}
               className="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500 disabled:opacity-40"
             >
@@ -180,15 +190,19 @@ function WorkoutCard({
         className="flex-1 p-4 flex flex-col gap-2 hover:bg-white/5 transition-colors"
       >
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold capitalize leading-tight">{workout.name}</h3>
+          <h3 className="font-semibold capitalize leading-tight">
+            {workout.name}
+          </h3>
           <DifficultyBadge level={workout.difficultyLevel} />
         </div>
 
         {workout.description && (
-          <p className="text-xs text-gray-400 line-clamp-2">{workout.description}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-300 line-clamp-2">
+            {workout.description}
+          </p>
         )}
 
-        <div className="flex items-center gap-3 text-xs text-gray-400 mt-auto pt-1">
+        <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-300 mt-auto pt-1">
           {workout.estimatedDurationMinutes && (
             <span>{workout.estimatedDurationMinutes} min</span>
           )}
@@ -201,18 +215,23 @@ function WorkoutCard({
         </div>
       </Link>
 
-      {isAdmin && (
-        confirming ? (
+      {isAdmin &&
+        (confirming ? (
           <div className="border-t flex items-center gap-2 px-3 py-2">
-            <span className="text-xs text-gray-400 mr-auto">Delete workout?</span>
+            <span className="text-xs text-gray-400 dark:text-gray-300 mr-auto">
+              Delete workout?
+            </span>
             <button
               onClick={() => setConfirming(false)}
-              className="px-3 py-1.5 text-xs text-gray-400 border rounded-lg hover:bg-white/5"
+              className="px-3 py-1.5 text-xs text-gray-400 dark:text-gray-300 border rounded-lg hover:bg-white/5"
             >
               Cancel
             </button>
             <button
-              onClick={() => { onDelete(); setConfirming(false); }}
+              onClick={() => {
+                onDelete();
+                setConfirming(false);
+              }}
               disabled={isDeleting}
               className="px-3 py-1.5 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-500 disabled:opacity-40"
             >
@@ -224,7 +243,7 @@ function WorkoutCard({
             <Link
               to="/workouts/$id"
               params={{ id: workout._id }}
-              className="flex-1 py-2.5 text-center text-xs text-gray-400 hover:bg-white/5 transition-colors"
+              className="flex-1 py-2.5 text-center text-xs text-gray-400 dark:text-gray-300 hover:bg-white/5 transition-colors"
             >
               Edit
             </Link>
@@ -235,8 +254,7 @@ function WorkoutCard({
               Delete
             </button>
           </div>
-        )
-      )}
+        ))}
     </div>
   );
 }

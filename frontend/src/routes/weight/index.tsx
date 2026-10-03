@@ -56,9 +56,16 @@ export function RouteComponent() {
       {
         onSuccess: () => {
           setShowForm(false);
-          setForm({ value: "", unit: "lbs", measuredDate: today, timeOfDay: "", conditions: "", notes: "" });
+          setForm({
+            value: "",
+            unit: "lbs",
+            measuredDate: today,
+            timeOfDay: "",
+            conditions: "",
+            notes: "",
+          });
         },
-      }
+      },
     );
   };
 
@@ -73,7 +80,10 @@ export function RouteComponent() {
         </button>
 
         {showForm && (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3 border p-4 rounded">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-3 border p-4 rounded"
+          >
             <div className="flex gap-2">
               <label className="flex flex-col gap-1 text-sm flex-1">
                 Weight
@@ -82,7 +92,9 @@ export function RouteComponent() {
                   min={0}
                   step="0.1"
                   value={form.value}
-                  onChange={(e) => setForm((f) => ({ ...f, value: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, value: e.target.value }))
+                  }
                   className="border rounded p-1"
                   placeholder="e.g. 180"
                   required
@@ -92,7 +104,9 @@ export function RouteComponent() {
                 Unit
                 <select
                   value={form.unit}
-                  onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, unit: e.target.value }))
+                  }
                   className="border rounded p-1"
                 >
                   <option value="lbs">lbs</option>
@@ -105,7 +119,9 @@ export function RouteComponent() {
               <input
                 type="date"
                 value={form.measuredDate}
-                onChange={(e) => setForm((f) => ({ ...f, measuredDate: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, measuredDate: e.target.value }))
+                }
                 className="border rounded p-1"
                 required
               />
@@ -115,7 +131,9 @@ export function RouteComponent() {
                 Time of day (optional)
                 <select
                   value={form.timeOfDay}
-                  onChange={(e) => setForm((f) => ({ ...f, timeOfDay: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, timeOfDay: e.target.value }))
+                  }
                   className="border rounded p-1"
                 >
                   <option value="">— none —</option>
@@ -129,7 +147,9 @@ export function RouteComponent() {
                 <input
                   type="text"
                   value={form.conditions}
-                  onChange={(e) => setForm((f) => ({ ...f, conditions: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, conditions: e.target.value }))
+                  }
                   className="border rounded p-1"
                   placeholder="e.g. fasted"
                 />
@@ -140,7 +160,9 @@ export function RouteComponent() {
               <input
                 type="text"
                 value={form.notes}
-                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, notes: e.target.value }))
+                }
                 className="border rounded p-1"
               />
             </label>
@@ -160,10 +182,20 @@ export function RouteComponent() {
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex gap-3 text-sm text-gray-500">
                 <span>
-                  Latest: <span className="font-semibold text-gray-800">{trends.summary.latest} {entries?.[0]?.unit ?? ""}</span>
+                  Latest:{" "}
+                  <span className="font-semibold text-gray-800">
+                    {trends.summary.latest} {entries?.[0]?.unit ?? ""}
+                  </span>
                 </span>
-                <span className={Number(trends.summary.totalChange) < 0 ? "text-green-600" : "text-red-500"}>
-                  {Number(trends.summary.totalChange) > 0 ? "+" : ""}{Number(trends.summary.totalChange).toFixed(1)} total
+                <span
+                  className={
+                    Number(trends.summary.totalChange) < 0
+                      ? "text-green-600"
+                      : "text-red-500"
+                  }
+                >
+                  {Number(trends.summary.totalChange) > 0 ? "+" : ""}
+                  {Number(trends.summary.totalChange).toFixed(1)} total
                 </span>
               </div>
               <div className="flex gap-1">
@@ -187,11 +219,11 @@ export function RouteComponent() {
         <div className="flex flex-col gap-2">
           {entries?.map((entry) => (
             <WeightEntry
-            key={entry._id}
-            entry={entry}
-            onDelete={() => deleteEntry.mutate(entry._id)}
-            onUpdate={(data) => updateEntry.mutate({ id: entry._id, data })}
-          />
+              key={entry._id}
+              entry={entry}
+              onDelete={() => deleteEntry.mutate(entry._id)}
+              onUpdate={(data) => updateEntry.mutate({ id: entry._id, data })}
+            />
           ))}
         </div>
       </div>
@@ -229,8 +261,14 @@ function WeightChart({ data }: { data: TrendDataPoint[] }) {
     `${toX(data[data.length - 1])},${padY + chartH}`,
   ].join(" ");
 
-  const startDate = new Date(data[0].date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-  const endDate = new Date(data[data.length - 1].date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const startDate = new Date(data[0].date).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+  const endDate = new Date(data[data.length - 1].date).toLocaleDateString(
+    undefined,
+    { month: "short", day: "numeric" },
+  );
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
@@ -245,7 +283,13 @@ function WeightChart({ data }: { data: TrendDataPoint[] }) {
       <polygon fill="url(#weight-fill)" points={area} />
 
       {/* Line */}
-      <polyline fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" points={polyline} />
+      <polyline
+        fill="none"
+        stroke="#3b82f6"
+        strokeWidth="2"
+        strokeLinejoin="round"
+        points={polyline}
+      />
 
       {/* Dots */}
       {data.map((d, i) => (
@@ -253,12 +297,38 @@ function WeightChart({ data }: { data: TrendDataPoint[] }) {
       ))}
 
       {/* Y axis labels */}
-      <text x={padX - 6} y={padY + 4} textAnchor="end" fontSize={10} fill="#9ca3af">{maxVal.toFixed(1)}</text>
-      <text x={padX - 6} y={padY + chartH} textAnchor="end" fontSize={10} fill="#9ca3af">{minVal.toFixed(1)}</text>
+      <text
+        x={padX - 6}
+        y={padY + 4}
+        textAnchor="end"
+        fontSize={10}
+        fill="#9ca3af"
+      >
+        {maxVal.toFixed(1)}
+      </text>
+      <text
+        x={padX - 6}
+        y={padY + chartH}
+        textAnchor="end"
+        fontSize={10}
+        fill="#9ca3af"
+      >
+        {minVal.toFixed(1)}
+      </text>
 
       {/* X axis labels */}
-      <text x={padX} y={H - 2} textAnchor="start" fontSize={10} fill="#9ca3af">{startDate}</text>
-      <text x={W - padX} y={H - 2} textAnchor="end" fontSize={10} fill="#9ca3af">{endDate}</text>
+      <text x={padX} y={H - 2} textAnchor="start" fontSize={10} fill="#9ca3af">
+        {startDate}
+      </text>
+      <text
+        x={W - padX}
+        y={H - 2}
+        textAnchor="end"
+        fontSize={10}
+        fill="#9ca3af"
+      >
+        {endDate}
+      </text>
     </svg>
   );
 }
@@ -283,10 +353,16 @@ function WeightEntry({
   });
 
   const date = new Date(entry.measuredDate).toLocaleDateString(undefined, {
-    weekday: "short", month: "short", day: "numeric",
+    weekday: "short",
+    month: "short",
+    day: "numeric",
   });
   const changeColor =
-    entry.change == null ? "" : entry.change < 0 ? "text-green-600" : "text-red-500";
+    entry.change == null
+      ? ""
+      : entry.change < 0
+        ? "text-green-600"
+        : "text-red-500";
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -303,7 +379,10 @@ function WeightEntry({
 
   if (editing) {
     return (
-      <form onSubmit={handleSave} className="flex flex-col gap-2 border p-3 rounded">
+      <form
+        onSubmit={handleSave}
+        className="flex flex-col gap-2 border p-3 rounded"
+      >
         <div className="flex gap-2">
           <label className="flex flex-col gap-1 text-sm flex-1">
             Weight
@@ -312,7 +391,9 @@ function WeightEntry({
               min={0}
               step="0.1"
               value={form.value}
-              onChange={(e) => setForm((f) => ({ ...f, value: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, value: e.target.value }))
+              }
               className="border rounded p-1"
               required
             />
@@ -333,7 +414,9 @@ function WeightEntry({
             <input
               type="date"
               value={form.measuredDate}
-              onChange={(e) => setForm((f) => ({ ...f, measuredDate: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, measuredDate: e.target.value }))
+              }
               className="border rounded p-1"
               required
             />
@@ -344,7 +427,9 @@ function WeightEntry({
             Time of day
             <select
               value={form.timeOfDay}
-              onChange={(e) => setForm((f) => ({ ...f, timeOfDay: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, timeOfDay: e.target.value }))
+              }
               className="border rounded p-1"
             >
               <option value="">— none —</option>
@@ -358,7 +443,9 @@ function WeightEntry({
             <input
               type="text"
               value={form.conditions}
-              onChange={(e) => setForm((f) => ({ ...f, conditions: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, conditions: e.target.value }))
+              }
               className="border rounded p-1"
             />
           </label>
@@ -373,10 +460,17 @@ function WeightEntry({
           />
         </label>
         <div className="flex gap-2 justify-end">
-          <button type="button" onClick={() => setEditing(false)} className="px-3 py-1 text-sm border rounded">
+          <button
+            type="button"
+            onClick={() => setEditing(false)}
+            className="px-3 py-1 text-sm border rounded"
+          >
             Cancel
           </button>
-          <button type="submit" className="px-3 py-1 text-sm bg-blue-500 text-white rounded">
+          <button
+            type="submit"
+            className="px-3 py-1 text-sm bg-blue-500 text-white rounded"
+          >
             Save
           </button>
         </div>
@@ -388,21 +482,41 @@ function WeightEntry({
     <div className="flex items-center justify-between border p-3 rounded gap-4">
       <div className="flex gap-4 flex-wrap items-center">
         <span className="font-medium">{date}</span>
-        <span>{entry.value} {entry.unit}</span>
+        <span>
+          {entry.value} {entry.unit}
+        </span>
         {entry.change != null && (
           <span className={`text-sm ${changeColor}`}>
-            {entry.change > 0 ? "+" : ""}{entry.change.toFixed(1)}
+            {entry.change > 0 ? "+" : ""}
+            {entry.change.toFixed(1)}
           </span>
         )}
         {entry.timeOfDay && (
-          <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 capitalize">{entry.timeOfDay}</span>
+          <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 capitalize">
+            {entry.timeOfDay}
+          </span>
         )}
-        {entry.conditions && <span className="text-xs text-gray-400">{entry.conditions}</span>}
-        {entry.notes && <span className="text-xs text-gray-400">{entry.notes}</span>}
+        {entry.conditions && (
+          <span className="text-xs text-gray-400 dark:text-gray-300">
+            {entry.conditions}
+          </span>
+        )}
+        {entry.notes && (
+          <span className="text-xs text-gray-400 dark:text-gray-300">
+            {entry.notes}
+          </span>
+        )}
       </div>
       <div className="flex gap-2 shrink-0">
-        <button onClick={() => setEditing(true)} className="text-blue-400 text-sm">Edit</button>
-        <button onClick={onDelete} className="text-red-400 text-sm">Delete</button>
+        <button
+          onClick={() => setEditing(true)}
+          className="text-blue-400 text-sm"
+        >
+          Edit
+        </button>
+        <button onClick={onDelete} className="text-red-400 text-sm">
+          Delete
+        </button>
       </div>
     </div>
   );

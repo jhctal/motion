@@ -24,12 +24,12 @@ const TopBar = ({ onMenuOpen }: TopBarProps) => {
   });
 
   return (
-    <div className="h-12 flex items-center bg-gray-900 w-full drop-shadow-2xl px-3 gap-3">
+    <div className="h-12 flex items-center bg-zinc-900 w-full drop-shadow-2xl px-3 gap-3">
       {/* Hamburger — only visible on mobile/tablet */}
       <button
         type="button"
         onClick={onMenuOpen}
-        className="lg:hidden w-9 h-9 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600"
+        className="lg:hidden w-9 h-9 flex items-center justify-center rounded text-orange-500 hover:text-orange-600 transition-colors cursor-pointer"
         aria-label="Open navigation"
       >
         <MenuIcon size={22} />
@@ -50,7 +50,10 @@ const TopBar = ({ onMenuOpen }: TopBarProps) => {
           </Dropdown.Trigger>
 
           <Dropdown.Content>
-            <Dropdown.Item icon={<UserIcon size={16} />} onClick={() => goTo({ to: "/profile" })}>
+            <Dropdown.Item
+              icon={<UserIcon size={16} />}
+              onClick={() => goTo({ to: "/profile" })}
+            >
               Profile
             </Dropdown.Item>
             <Dropdown.Item

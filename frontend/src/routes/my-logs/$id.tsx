@@ -126,7 +126,7 @@ function ActiveLog() {
   if (isLoading || !session) {
     return (
       <PageWrapper pageName="Loading...">
-        <p className="text-gray-400">Loading session...</p>
+        <p className="text-gray-400 dark:text-gray-300">Loading session...</p>
       </PageWrapper>
     );
   }
@@ -180,7 +180,9 @@ function ActiveLog() {
                 exercises={availableExercises}
                 onSelect={handleAddExercise}
                 disabled={addExercise.isPending}
-                placeholder={addExercise.isPending ? "Adding..." : "+ Add exercise"}
+                placeholder={
+                  addExercise.isPending ? "Adding..." : "+ Add exercise"
+                }
               />
             )}
           </div>
@@ -217,7 +219,7 @@ function ActiveLog() {
           <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
             <div className="bg-zinc-900 border rounded-lg p-6 w-full max-w-sm flex flex-col gap-4">
               <h2 className="text-lg font-semibold">Cancel workout?</h2>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-400 dark:text-gray-300">
                 This will permanently delete this workout session. This cannot
                 be undone.
               </p>
@@ -268,7 +270,9 @@ function FinishModal({
         <h2 className="text-lg font-semibold">How was your workout?</h2>
 
         <div>
-          <label className="block text-sm text-gray-400 mb-2">Rating</label>
+          <label className="block text-sm text-gray-400 dark:text-gray-300 mb-2">
+            Rating
+          </label>
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5].map((n) => (
               <button
@@ -288,7 +292,9 @@ function FinishModal({
         </div>
 
         <div>
-          <label className="block text-sm text-gray-400 mb-2">Feeling</label>
+          <label className="block text-sm text-gray-400 dark:text-gray-300 mb-2">
+            Feeling
+          </label>
           <div className="flex gap-1 flex-wrap">
             {(["terrible", "bad", "okay", "good", "amazing"] as const).map(
               (f) => (
@@ -310,7 +316,9 @@ function FinishModal({
         </div>
 
         <div>
-          <label className="block text-sm text-gray-400 mb-2">Notes</label>
+          <label className="block text-sm text-gray-400 dark:text-gray-300 mb-2">
+            Notes
+          </label>
           <textarea
             rows={3}
             placeholder="Any notes about this session..."
@@ -355,7 +363,7 @@ function ProgressBar({
 
   return (
     <div className="mb-6">
-      <div className="flex justify-between text-sm text-gray-400 mb-1">
+      <div className="flex justify-between text-sm text-gray-400 dark:text-gray-300 mb-1">
         <span className="capitalize">{session.status}</span>
         <span>
           {completedSets} / {totalSets} sets
@@ -424,7 +432,7 @@ function SetStepper({
         <button
           type="button"
           onClick={dec}
-          className="w-11 h-full border-r flex items-center justify-center text-2xl text-gray-400 active:bg-white/10 select-none shrink-0"
+          className="w-11 h-full border-r flex items-center justify-center text-2xl text-gray-400 dark:text-gray-300 active:bg-white/10 select-none shrink-0"
         >
           −
         </button>
@@ -434,7 +442,7 @@ function SetStepper({
         <button
           type="button"
           onClick={inc}
-          className="w-11 h-full border-l flex items-center justify-center text-2xl text-gray-400 active:bg-white/10 select-none shrink-0"
+          className="w-11 h-full border-l flex items-center justify-center text-2xl text-gray-400 dark:text-gray-300 active:bg-white/10 select-none shrink-0"
         >
           +
         </button>
@@ -449,7 +457,7 @@ function SetStepper({
               className={`py-1 rounded text-xs font-medium transition-colors ${
                 activeStep === s
                   ? "bg-orange-500 text-black"
-                  : "border border-black text-gray-400 hover:border-orange-400"
+                  : "border border-black text-gray-400 dark:text-gray-300 hover:border-orange-400"
               }`}
             >
               {Number.isInteger(s) ? s : s.toFixed(1)}
@@ -464,15 +472,12 @@ function SetStepper({
               key={p}
               type="button"
               onClick={() =>
-                setValue(
-                  name as unknown as Parameters<typeof setValue>[0],
-                  p,
-                )
+                setValue(name as unknown as Parameters<typeof setValue>[0], p)
               }
               className={`py-1 rounded text-xs font-medium transition-colors ${
                 val === p
                   ? "bg-orange-500 text-black"
-                  : "border border-black text-gray-400 hover:border-orange-400"
+                  : "border border-black text-gray-400 dark:text-gray-300 hover:border-orange-400"
               }`}
             >
               {p}
@@ -607,7 +612,7 @@ function ExerciseCard({
           className="flex-1 flex items-center gap-2 text-left min-w-0"
         >
           <span
-            className={`text-gray-400 text-xs transition-transform duration-200 shrink-0 ${collapsed ? "-rotate-90" : "rotate-0"}`}
+            className={`text-gray-400 dark:text-gray-300 text-xs transition-transform duration-200 shrink-0 ${collapsed ? "-rotate-90" : "rotate-0"}`}
           >
             ▼
           </span>
@@ -617,7 +622,7 @@ function ExerciseCard({
             >
               {exerciseData.name}
             </h3>
-            <p className="text-xs text-gray-400 capitalize mt-0.5">
+            <p className="text-xs text-gray-400 dark:text-gray-300 capitalize mt-0.5">
               {exerciseData.mainTargetMuscle}
               {collapsed && completedStates.length > 0 && (
                 <span className="ml-2">
@@ -634,7 +639,10 @@ function ExerciseCard({
               <>
                 <button
                   type="button"
-                  onClick={() => { setConfirmRemoveExercise(false); onRemove(); }}
+                  onClick={() => {
+                    setConfirmRemoveExercise(false);
+                    onRemove();
+                  }}
                   disabled={isRemoving}
                   className="px-2 h-8 rounded text-xs font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-40 transition-colors"
                 >
@@ -643,7 +651,7 @@ function ExerciseCard({
                 <button
                   type="button"
                   onClick={() => setConfirmRemoveExercise(false)}
-                  className="px-2 h-8 rounded text-xs text-gray-400 hover:text-white transition-colors"
+                  className="px-2 h-8 rounded text-xs text-gray-400 dark:text-gray-300 hover:text-white transition-colors"
                 >
                   Cancel
                 </button>
@@ -653,7 +661,7 @@ function ExerciseCard({
                 type="button"
                 onClick={() => setConfirmRemoveExercise(true)}
                 disabled={isRemoving}
-                className="w-10 h-10 flex items-center lg:items-start justify-center text-gray-400 hover:text-red-400 text-2xl disabled:opacity-40 transition-colors"
+                className="w-10 h-10 flex items-center lg:items-start justify-center text-gray-400 dark:text-gray-300 hover:text-red-400 text-2xl disabled:opacity-40 transition-colors"
                 title="Remove exercise"
               >
                 ×
@@ -670,15 +678,15 @@ function ExerciseCard({
             <div className="hidden lg:flex items-center gap-2 mb-2 px-1">
               <span className="w-6 shrink-0" />
               {isCardio ? (
-                <span className="flex-1 text-xs text-gray-400 text-center">
+                <span className="flex-1 text-xs text-gray-400 dark:text-gray-300 text-center">
                   Duration (s)
                 </span>
               ) : (
                 <>
-                  <span className="flex-1 text-xs text-gray-400 text-center">
+                  <span className="flex-1 text-xs text-gray-400 dark:text-gray-300 text-center">
                     Reps
                   </span>
-                  <span className="flex-1 text-xs text-gray-400 text-center">
+                  <span className="flex-1 text-xs text-gray-400 dark:text-gray-300 text-center">
                     kg
                   </span>
                 </>
@@ -716,7 +724,7 @@ function ExerciseCard({
                             return next;
                           })
                         }
-                        className="flex items-center gap-2 text-sm font-semibold text-gray-400"
+                        className="flex items-center gap-2 text-sm font-semibold text-gray-400 dark:text-gray-300"
                       >
                         <span
                           className={`text-gray-500 text-xs transition-transform duration-200 ${setCollapsed ? "-rotate-90" : "rotate-0"}`}
@@ -735,22 +743,29 @@ function ExerciseCard({
                           disabled={sessionCompleted}
                           type="button"
                           onClick={() =>
-                            handleToggleCompleted(setIndex, setNumber, completed)
+                            handleToggleCompleted(
+                              setIndex,
+                              setNumber,
+                              completed,
+                            )
                           }
                           className={`w-10 h-10 rounded-lg border-2 text-sm font-bold transition-colors ${
                             completed
                               ? "bg-orange-500 border-orange-500 text-black"
-                              : "border-white/30 text-gray-400 hover:border-orange-400 active:bg-white/5"
+                              : "border-white/30 text-gray-400 dark:text-gray-300 hover:border-orange-400 active:bg-white/5"
                           }`}
                         >
                           ✓
                         </button>
-                        {!sessionCompleted && (
-                          pendingDeleteSet === setIndex ? (
+                        {!sessionCompleted &&
+                          (pendingDeleteSet === setIndex ? (
                             <>
                               <button
                                 type="button"
-                                onClick={() => { setPendingDeleteSet(null); handleDeleteSet(setIndex, setNumber); }}
+                                onClick={() => {
+                                  setPendingDeleteSet(null);
+                                  handleDeleteSet(setIndex, setNumber);
+                                }}
                                 disabled={deleteSet.isPending}
                                 className="px-2 h-10 rounded-lg text-xs font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-40 transition-colors"
                               >
@@ -759,7 +774,7 @@ function ExerciseCard({
                               <button
                                 type="button"
                                 onClick={() => setPendingDeleteSet(null)}
-                                className="px-2 h-10 rounded-lg text-xs text-gray-400 hover:text-white transition-colors"
+                                className="px-2 h-10 rounded-lg text-xs text-gray-400 dark:text-gray-300 hover:text-white transition-colors"
                               >
                                 Cancel
                               </button>
@@ -773,8 +788,7 @@ function ExerciseCard({
                             >
                               ✕
                             </button>
-                          )
-                        )}
+                          ))}
                       </div>
                     </div>
 
@@ -783,7 +797,7 @@ function ExerciseCard({
                       <div className="flex flex-col gap-3 px-3 pb-3">
                         {isCardio ? (
                           <div className="flex flex-col gap-1">
-                            <span className="text-xs text-gray-400 text-center">
+                            <span className="text-xs text-gray-400 dark:text-gray-300 text-center">
                               Duration (s)
                             </span>
                             <SetStepper
@@ -796,7 +810,7 @@ function ExerciseCard({
                         ) : (
                           <>
                             <div className="flex flex-col gap-1">
-                              <span className="text-xs text-gray-400 text-center">
+                              <span className="text-xs text-gray-400 dark:text-gray-300 text-center">
                                 Reps
                               </span>
                               <SetStepper
@@ -808,7 +822,7 @@ function ExerciseCard({
                               />
                             </div>
                             <div className="flex flex-col gap-1">
-                              <span className="text-xs text-gray-400 text-center">
+                              <span className="text-xs text-gray-400 dark:text-gray-300 text-center">
                                 kg
                               </span>
                               <SetStepper
@@ -832,7 +846,7 @@ function ExerciseCard({
                       completed ? "bg-orange-500/10" : ""
                     }`}
                   >
-                    <span className="w-6 shrink-0 text-sm font-medium text-gray-400 text-center">
+                    <span className="w-6 shrink-0 text-sm font-medium text-gray-400 dark:text-gray-300 text-center">
                       {setNumber}
                     </span>
 
@@ -873,18 +887,21 @@ function ExerciseCard({
                         className={`w-14 h-14 shrink-0 rounded-lg border-2 text-sm font-bold transition-colors ${
                           completed
                             ? "bg-orange-500 border-orange-500 text-black"
-                            : "border-white/30 text-gray-400 hover:border-orange-400 active:bg-white/5"
+                            : "border-white/30 text-gray-400 dark:text-gray-300 hover:border-orange-400 active:bg-white/5"
                         }`}
                       >
                         ✓
                       </button>
 
-                      {!sessionCompleted && (
-                        pendingDeleteSet === setIndex ? (
+                      {!sessionCompleted &&
+                        (pendingDeleteSet === setIndex ? (
                           <>
                             <button
                               type="button"
-                              onClick={() => { setPendingDeleteSet(null); handleDeleteSet(setIndex, setNumber); }}
+                              onClick={() => {
+                                setPendingDeleteSet(null);
+                                handleDeleteSet(setIndex, setNumber);
+                              }}
                               disabled={deleteSet.isPending}
                               className="px-2 h-8 shrink-0 rounded-lg text-xs font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-40 transition-colors"
                             >
@@ -893,7 +910,7 @@ function ExerciseCard({
                             <button
                               type="button"
                               onClick={() => setPendingDeleteSet(null)}
-                              className="px-2 h-8 shrink-0 rounded-lg text-xs text-gray-400 hover:text-white transition-colors"
+                              className="px-2 h-8 shrink-0 rounded-lg text-xs text-gray-400 dark:text-gray-300 hover:text-white transition-colors"
                             >
                               Cancel
                             </button>
@@ -907,8 +924,7 @@ function ExerciseCard({
                           >
                             ✕
                           </button>
-                        )
-                      )}
+                        ))}
                     </div>
                   </div>
                 </div>
@@ -921,7 +937,7 @@ function ExerciseCard({
               type="button"
               onClick={handleAddSet}
               disabled={updateSet.isPending}
-              className="w-full h-14 border-2 border-dashed rounded-lg text-gray-400 hover:text-white hover:border-orange-400 font-medium transition-colors disabled:opacity-40"
+              className="w-full h-14 border-2 border-dashed rounded-lg text-gray-400 dark:text-gray-300 hover:text-white hover:border-orange-400 font-medium transition-colors disabled:opacity-40"
             >
               + Add set
             </button>

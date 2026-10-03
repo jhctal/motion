@@ -65,7 +65,10 @@ function WorkoutView() {
       id,
       name: name.trim(),
       description: description.trim(),
-      difficultyLevel: difficultyLevel as "beginner" | "intermediate" | "advanced",
+      difficultyLevel: difficultyLevel as
+        | "beginner"
+        | "intermediate"
+        | "advanced",
       estimatedDurationMinutes: estimatedDurationMinutes
         ? Number(estimatedDurationMinutes)
         : undefined,
@@ -74,7 +77,8 @@ function WorkoutView() {
   }
 
   async function handleDelete() {
-    if (!id || !confirm(`Delete "${data?.name}"? This cannot be undone.`)) return;
+    if (!id || !confirm(`Delete "${data?.name}"? This cannot be undone.`))
+      return;
     await deleteWorkout.mutateAsync(id);
     navigate({ to: "/workouts" });
   }
@@ -89,8 +93,12 @@ function WorkoutView() {
     await removeExercise.mutateAsync({ workoutId: id, templateExerciseId });
   }
 
-  const existingExerciseIds = new Set(data?.exercises.map((e) => e.exercise._id) ?? []);
-  const availableToAdd = allExercises?.filter((ex) => !existingExerciseIds.has(ex._id));
+  const existingExerciseIds = new Set(
+    data?.exercises.map((e) => e.exercise._id) ?? [],
+  );
+  const availableToAdd = allExercises?.filter(
+    (ex) => !existingExerciseIds.has(ex._id),
+  );
 
   return (
     <PageWrapper pageName={editing ? "" : (data?.name ?? "Loading...")}>
@@ -128,7 +136,9 @@ function WorkoutView() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
+              <label className="block text-sm font-medium mb-1">
+                Description
+              </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -139,7 +149,9 @@ function WorkoutView() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Difficulty</label>
+                <label className="block text-sm font-medium mb-1">
+                  Difficulty
+                </label>
                 <select
                   value={difficultyLevel}
                   onChange={(e) => setDifficultyLevel(e.target.value)}
@@ -168,7 +180,9 @@ function WorkoutView() {
 
             {/* Exercise management */}
             <div>
-              <label className="block text-sm font-medium mb-2">Exercises</label>
+              <label className="block text-sm font-medium mb-2">
+                Exercises
+              </label>
               <div className="flex flex-col gap-2 mb-3">
                 {data?.exercises.map((ex) => (
                   <div
@@ -176,8 +190,10 @@ function WorkoutView() {
                     className="border rounded p-3 flex items-center gap-3"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium capitalize text-sm">{ex.exercise.name}</p>
-                      <p className="text-xs text-gray-400 capitalize">
+                      <p className="font-medium capitalize text-sm">
+                        {ex.exercise.name}
+                      </p>
+                      <p className="text-xs text-gray-400 dark:text-gray-300 capitalize">
                         {ex.exercise.mainTargetMuscle}
                       </p>
                     </div>
@@ -185,7 +201,7 @@ function WorkoutView() {
                       type="button"
                       onClick={() => handleRemoveExercise(ex._id)}
                       disabled={removeExercise.isPending}
-                      className="text-gray-400 hover:text-red-400 text-lg leading-none"
+                      className="text-gray-400 dark:text-gray-300 hover:text-red-400 text-lg leading-none"
                     >
                       ×
                     </button>
@@ -199,7 +215,9 @@ function WorkoutView() {
                 className="w-full p-2 border rounded bg-transparent capitalize"
               >
                 <option value="">
-                  {!availableToAdd?.length ? "— no more exercises —" : "— add an exercise —"}
+                  {!availableToAdd?.length
+                    ? "— no more exercises —"
+                    : "— add an exercise —"}
                 </option>
                 {availableToAdd?.map((ex) => (
                   <option key={ex._id} value={ex._id} className="capitalize">

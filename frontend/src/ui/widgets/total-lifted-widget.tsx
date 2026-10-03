@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useWorkoutStats } from "../../api/workouts/use-workout-sessions";
+import TabButton from "../tab-button";
 
 const PERIODS = [
   { label: "30d", value: "30d" },
@@ -53,22 +54,18 @@ export function TotalLiftedWidget() {
   return (
     <div className="h-full border rounded-lg p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-400 uppercase tracking-wide">
+        <p className="text-xs text-gray-400 dark:text-gray-300 uppercase tracking-wide">
           Total Lifted
         </p>
         <div className="flex gap-1">
           {PERIODS.map((p) => (
-            <button
+            <TabButton
               key={p.value}
+              active={period === p.value}
               onClick={() => setPeriod(p.value)}
-              className={`text-xs px-2 py-0.5 rounded transition-colors ${
-                period === p.value
-                  ? "bg-orange-500 text-black font-semibold"
-                  : "text-gray-400 hover:text-white"
-              }`}
             >
               {p.label}
-            </button>
+            </TabButton>
           ))}
         </div>
       </div>
@@ -77,12 +74,12 @@ export function TotalLiftedWidget() {
         <BarbellIcon className="w-16 h-auto text-orange-400 shrink-0" />
         <div>
           {isLoading ? (
-            <p className="text-sm text-gray-500">Loading…</p>
+            <p className="text-sm text-gray-500 h-[53.5px]">Loading…</p>
           ) : (
             <>
               <p className="text-3xl font-bold leading-none">
                 {formatWeight(data?.totalWeight ?? 0)}
-                <span className="text-lg font-normal text-gray-400 ml-1">
+                <span className="text-lg font-normal text-gray-400 dark:text-gray-300 ml-1">
                   kg
                 </span>
               </p>

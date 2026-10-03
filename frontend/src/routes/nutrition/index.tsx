@@ -48,18 +48,30 @@ export function RouteComponent() {
       {
         onSuccess: () => {
           setShowForm(false);
-          setForm({ date: today, label: "", category: "", calories: "", protein: "", carbs: "", fat: "", notes: "" });
+          setForm({
+            date: today,
+            label: "",
+            category: "",
+            calories: "",
+            protein: "",
+            carbs: "",
+            fat: "",
+            notes: "",
+          });
         },
-      }
+      },
     );
   };
 
   // Group logs by date string (YYYY-MM-DD)
-  const grouped = (logs ?? []).reduce<Record<string, NutritionLog[]>>((acc, log) => {
-    const key = log.date.split("T")[0];
-    (acc[key] ??= []).push(log);
-    return acc;
-  }, {});
+  const grouped = (logs ?? []).reduce<Record<string, NutritionLog[]>>(
+    (acc, log) => {
+      const key = log.date.split("T")[0];
+      (acc[key] ??= []).push(log);
+      return acc;
+    },
+    {},
+  );
 
   const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
@@ -74,13 +86,18 @@ export function RouteComponent() {
         </button>
 
         {showForm && (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3 border p-4 rounded max-w-md">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-3 border p-4 rounded max-w-md"
+          >
             <label className="flex flex-col gap-1 text-sm">
               Date
               <input
                 type="date"
                 value={form.date}
-                onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, date: e.target.value }))
+                }
                 className="border rounded p-1"
                 required
               />
@@ -90,7 +107,9 @@ export function RouteComponent() {
               <input
                 type="text"
                 value={form.label}
-                onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, label: e.target.value }))
+                }
                 className="border rounded p-1"
                 placeholder="e.g. Breakfast, Lunch, Snack"
               />
@@ -99,7 +118,9 @@ export function RouteComponent() {
               Category (optional)
               <select
                 value={form.category}
-                onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, category: e.target.value }))
+                }
                 className="border rounded p-1"
               >
                 <option value="">— none —</option>
@@ -123,7 +144,9 @@ export function RouteComponent() {
                 type="number"
                 min={0}
                 value={form.calories}
-                onChange={(e) => setForm((f) => ({ ...f, calories: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, calories: e.target.value }))
+                }
                 className="border rounded p-1"
                 placeholder="e.g. 600"
                 required
@@ -136,7 +159,9 @@ export function RouteComponent() {
                   type="number"
                   min={0}
                   value={form.protein}
-                  onChange={(e) => setForm((f) => ({ ...f, protein: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, protein: e.target.value }))
+                  }
                   className="border rounded p-1"
                   placeholder="0"
                 />
@@ -147,7 +172,9 @@ export function RouteComponent() {
                   type="number"
                   min={0}
                   value={form.carbs}
-                  onChange={(e) => setForm((f) => ({ ...f, carbs: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, carbs: e.target.value }))
+                  }
                   className="border rounded p-1"
                   placeholder="0"
                 />
@@ -158,7 +185,9 @@ export function RouteComponent() {
                   type="number"
                   min={0}
                   value={form.fat}
-                  onChange={(e) => setForm((f) => ({ ...f, fat: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, fat: e.target.value }))
+                  }
                   className="border rounded p-1"
                   placeholder="0"
                 />
@@ -169,7 +198,9 @@ export function RouteComponent() {
               <input
                 type="text"
                 value={form.notes}
-                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, notes: e.target.value }))
+                }
                 className="border rounded p-1"
                 placeholder="e.g. cheat day, high protein day"
               />
@@ -196,9 +227,11 @@ export function RouteComponent() {
                 carbs: acc.carbs + e.carbs,
                 fat: acc.fat + e.fat,
               }),
-              { calories: 0, protein: 0, carbs: 0, fat: 0 }
+              { calories: 0, protein: 0, carbs: 0, fat: 0 },
             );
-            const displayDate = new Date(dateKey + "T12:00:00").toLocaleDateString(undefined, {
+            const displayDate = new Date(
+              dateKey + "T12:00:00",
+            ).toLocaleDateString(undefined, {
               weekday: "short",
               month: "short",
               day: "numeric",
@@ -208,7 +241,7 @@ export function RouteComponent() {
               <div key={dateKey} className="border rounded overflow-hidden">
                 <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 px-3 py-2 gap-4 flex-wrap">
                   <span className="font-semibold">{displayDate}</span>
-                  <div className="flex gap-3 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex gap-3 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-300">
                     <span>{total.calories} kcal</span>
                     <span>P: {total.protein}g</span>
                     <span>C: {total.carbs}g</span>
@@ -217,7 +250,10 @@ export function RouteComponent() {
                 </div>
                 <div className="divide-y">
                   {entries.map((log) => (
-                    <div key={log._id} className="flex items-center justify-between px-3 py-2 gap-4 flex-wrap">
+                    <div
+                      key={log._id}
+                      className="flex items-center justify-between px-3 py-2 gap-4 flex-wrap"
+                    >
                       <div className="flex gap-3 flex-wrap items-center">
                         {log.label && (
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-300 w-24 shrink-0">
@@ -225,15 +261,25 @@ export function RouteComponent() {
                           </span>
                         )}
                         {log.category && (
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 capitalize">
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 dark:text-gray-300 capitalize">
                             {log.category}
                           </span>
                         )}
                         <span className="text-sm">{log.calories} kcal</span>
-                        <span className="text-sm text-gray-500">P: {log.protein}g</span>
-                        <span className="text-sm text-gray-500">C: {log.carbs}g</span>
-                        <span className="text-sm text-gray-500">F: {log.fat}g</span>
-                        {log.notes && <span className="text-xs text-gray-400">{log.notes}</span>}
+                        <span className="text-sm text-gray-500">
+                          P: {log.protein}g
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          C: {log.carbs}g
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          F: {log.fat}g
+                        </span>
+                        {log.notes && (
+                          <span className="text-xs text-gray-400 dark:text-gray-300">
+                            {log.notes}
+                          </span>
+                        )}
                       </div>
                       <button
                         onClick={() => deleteLog.mutate(log._id)}

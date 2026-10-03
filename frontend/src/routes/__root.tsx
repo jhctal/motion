@@ -18,13 +18,13 @@ function RootLayout() {
   }
 
   return (
-    <div className="flex bg-gray-300 dark:bg-zinc-950">
+    <div className="flex bg-gray-300 dark:bg-zinc-800">
       <Sidebar />
       <MobileNav open={menuOpen} onClose={() => setMenuOpen(false)} />
       <hr />
       <div className="h-dvh w-full">
         <TopBar onMenuOpen={() => setMenuOpen(true)} />
-        <div className="h-[calc(100dvh-48px)] bg-white dark:bg-zinc-950 dark:text-white py-6 px-4 overflow-scroll">
+        <div className="h-[calc(100dvh-48px)] bg-white dark:bg-zinc-800 dark:text-white py-6 px-4 overflow-auto">
           <Outlet />
         </div>
       </div>
