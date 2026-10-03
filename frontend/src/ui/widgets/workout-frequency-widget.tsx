@@ -71,8 +71,8 @@ export function WorkoutFrequencyWidget() {
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading…</p>
       ) : (
-        <div className="flex items-start gap-4">
-          <div className="flex gap-1 w-full">
+        <div className="flex items-start gap-4 h-full ">
+          <div className="flex gap-1 w-full h-full">
             <div className="grid grid-rows-7 gap-1 justify-center items-center">
               {WEEKDAY_LABELS.map((label, i) => (
                 <span
@@ -83,9 +83,9 @@ export function WorkoutFrequencyWidget() {
                 </span>
               ))}
             </div>
-            <div className="grid grid-rows-7 grid-flow-col gap-1">
+            <div className="grid grid-rows-7 flex-1 grid-flow-col gap-1 h-full">
               {cells.map((date, i) => {
-                if (!date) return <div key={i} className="w-6 h-6" />;
+                if (!date) return <div key={i} className="w-full h-full" />;
 
                 const key = toDayKey(date);
                 const count = countsByDay.get(key) ?? 0;
@@ -100,11 +100,11 @@ export function WorkoutFrequencyWidget() {
                         ? undefined
                         : `${date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}: ${count} workout${count !== 1 ? "s" : ""}`
                     }
-                    className={`w-6 h-6 border rounded-sm text-xs flex justify-center items-center ${
+                    className={`w-full h-full border rounded-sm text-xs flex justify-center items-center ${
                       isFuture
                         ? "border-dashed text-gray-300 dark:text-zinc-700"
                         : cellClass(count)
-                    } ${isToday ? "ring-1 ring-inset ring-black/40 dark:ring-white/70" : ""}`}
+                    } ${isToday ? " text-orange-500" : ""}`}
                   >
                     {date.getDate()}
                   </div>
