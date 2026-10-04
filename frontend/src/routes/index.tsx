@@ -38,10 +38,10 @@ function Homepage() {
           <TotalLiftedWidget />
         </div>
         <div>
-          <WorkoutFrequencyWidget />
+          <LastWorkoutWidget />
         </div>
         <div className="md:col-span-2">
-          <LastWorkoutWidget />
+          <WorkoutFrequencyWidget />
         </div>
         <div className="md:col-span-3">
           <WeightTrendWidget />

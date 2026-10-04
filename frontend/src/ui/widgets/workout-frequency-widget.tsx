@@ -41,15 +41,26 @@ export function WorkoutFrequencyWidget() {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   // getDay() is Sunday-based (0-6); shift so the week starts on Monday.
   const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-  const cells: (Date | null)[] = [
-    ...Array.from({ length: firstWeekday }, () => null),
-    ...Array.from(
-      { length: daysInMonth },
-      (_, i) => new Date(year, month, i + 1),
-    ),
+  // Pad the grid with adjacent-month days so every row stays a full week.
+  const cells: { date: Date; isCurrentMonth: boolean }[] = [
+    ...Array.from({ length: firstWeekday }, (_, i) => ({
+      date: new Date(year, month - 1, daysInPrevMonth - firstWeekday + i + 1),
+      isCurrentMonth: false,
+    })),
+    ...Array.from({ length: daysInMonth }, (_, i) => ({
+      date: new Date(year, month, i + 1),
+      isCurrentMonth: true,
+    })),
   ];
-  while (cells.length % 7 !== 0) cells.push(null);
+  const trailingDays = (7 - (cells.length % 7)) % 7;
+  cells.push(
+    ...Array.from({ length: trailingDays }, (_, i) => ({
+      date: new Date(year, month + 1, i + 1),
+      isCurrentMonth: false,
+    })),
+  );
 
   const activeDays = countsByDay.size;
   const monthLabel = now.toLocaleDateString(undefined, {
@@ -84,8 +95,17 @@ export function WorkoutFrequencyWidget() {
               ))}
             </div>
             <div className="grid grid-rows-7 flex-1 grid-flow-col gap-1 h-full">
-              {cells.map((date, i) => {
-                if (!date) return <div key={i} className="w-full h-full" />;
+              {cells.map(({ date, isCurrentMonth }, i) => {
+                if (!isCurrentMonth) {
+                  return (
+                    <div
+                      key={i}
+                      className="w-full h-full border border-transparent rounded-sm text-xs flex justify-center items-center text-gray-300 dark:text-zinc-700"
+                    >
+                      {date.getDate()}
+                    </div>
+                  );
+                }
 
                 const key = toDayKey(date);
                 const count = countsByDay.get(key) ?? 0;
