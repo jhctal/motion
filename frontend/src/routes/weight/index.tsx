@@ -10,6 +10,7 @@ import {
   type TrendDataPoint,
   type BodyMeasurement,
 } from "../../api/body-measurements/use-body-measurements";
+import Button from "../../ui/button/button";
 
 export const Route = createFileRoute("/weight/")({
   component: RouteComponent,
@@ -72,12 +73,9 @@ export function RouteComponent() {
   return (
     <PageWrapper pageName="Weight">
       <div className="flex flex-col gap-4 mt-4 max-w-2xl">
-        <button
-          className="self-start px-4 py-2 bg-blue-500 text-white rounded"
-          onClick={() => setShowForm((v) => !v)}
-        >
+        <Button className="w-fit" onClick={() => setShowForm((v) => !v)}>
           {showForm ? "Cancel" : "Log Weight"}
-        </button>
+        </Button>
 
         {showForm && (
           <form
@@ -187,13 +185,7 @@ export function RouteComponent() {
                     {trends.summary.latest} {entries?.[0]?.unit ?? ""}
                   </span>
                 </span>
-                <span
-                  className={
-                    Number(trends.summary.totalChange) < 0
-                      ? "text-green-600"
-                      : "text-red-500"
-                  }
-                >
+                <span className="text-green-600">
                   {Number(trends.summary.totalChange) > 0 ? "+" : ""}
                   {Number(trends.summary.totalChange).toFixed(1)} total
                 </span>

@@ -70,6 +70,7 @@ function RouteComponent() {
               <Input
                 label="Password"
                 disabled={isPending}
+                type="password"
                 placeholder="password"
                 {...methods.register("password")}
               />

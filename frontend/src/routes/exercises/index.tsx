@@ -8,6 +8,7 @@ import {
   useListExercises,
 } from "../../api/exercises/use-list-exercises";
 import { usePendingExercises } from "../../api/exercises/use-pending-exercises";
+import Button from "../../ui/button/button";
 
 export const Route = createFileRoute("/exercises/")({
   beforeLoad: async ({ location }) => {
@@ -82,11 +83,8 @@ function ExerciseIndex() {
           <span className="text-sm text-gray-400 dark:text-gray-300">
             {exercises?.length ?? 0} exercises
           </span>
-          <Link
-            to="/exercises/new"
-            className="px-3 py-1.5 bg-orange-500 text-black text-sm font-semibold rounded-lg hover:bg-orange-400"
-          >
-            + New exercise
+          <Link to="/exercises/new">
+            <Button>+ New exercise</Button>
           </Link>
         </div>
 

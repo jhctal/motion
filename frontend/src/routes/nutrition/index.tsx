@@ -7,6 +7,7 @@ import {
   useDeleteNutritionLog,
   NutritionLog,
 } from "../../api/nutrition/use-nutrition-logs";
+import Button from "../../ui/button/button";
 
 export const Route = createFileRoute("/nutrition/")({
   component: RouteComponent,
@@ -78,12 +79,9 @@ export function RouteComponent() {
   return (
     <PageWrapper pageName="Nutrition">
       <div className="flex flex-col gap-4 mt-4">
-        <button
-          className="self-start px-4 py-2 bg-blue-500 text-white rounded"
-          onClick={() => setShowForm((v) => !v)}
-        >
+        <Button className="w-fit" onClick={() => setShowForm((v) => !v)}>
           {showForm ? "Cancel" : "Log Nutrition"}
-        </button>
+        </Button>
 
         {showForm && (
           <form

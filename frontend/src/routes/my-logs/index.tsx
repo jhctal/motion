@@ -11,6 +11,7 @@ import useListLogs, {
 import { useDeleteLog } from "../../api/logged-workouts/use-delete-log";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
 import cn from "../../utils/cn";
+import Button from "../../ui/button/button";
 
 export const Route = createFileRoute("/my-logs/")({
   beforeLoad: async () => {
@@ -33,12 +34,9 @@ function RouteComponent() {
         <span className="text-sm text-gray-400 dark:text-gray-300">
           {data?.workoutSessions.length ?? 0} sessions
         </span>
-        <button
-          className="px-3 py-1 bg-orange-500 text-black text-sm font-medium rounded hover:bg-orange-400"
-          onClick={() => goTo({ to: "/my-logs/new" })}
-        >
+        <Button onClick={() => goTo({ to: "/my-logs/new" })}>
           + Log workout
-        </button>
+        </Button>
       </div>
       <div className="flex flex-col gap-2">
         {data?.workoutSessions.map((session) => (

@@ -5,6 +5,7 @@ import { useApproveWorkout } from "../../api/workouts/use-approve-workout";
 import { useDeleteWorkout } from "../../api/workouts/use-delete-workout";
 import useListWorkouts, { Workout } from "../../api/workouts/use-list-workouts";
 import { usePendingWorkouts } from "../../api/workouts/use-pending-workouts";
+import Button from "../../ui/button/button";
 
 export const Route = createFileRoute("/workouts/")({
   beforeLoad: async ({ location }) => {
@@ -71,11 +72,8 @@ function WorkoutIndex() {
           <span className="text-sm text-gray-400 dark:text-gray-300">
             {workouts?.length ?? 0} workouts
           </span>
-          <Link
-            to="/workouts/new"
-            className="px-3 py-1.5 bg-orange-500 text-black text-sm font-semibold rounded-lg hover:bg-orange-400"
-          >
-            + New workout
+          <Link to="/workouts/new">
+            <Button>+ New workout</Button>
           </Link>
         </div>
 
