@@ -23,7 +23,9 @@ export function LastWorkoutWidget() {
 
   return (
     <div className="border rounded-lg p-4 flex flex-col gap-3 h-full">
-      <p className="text-xs text-gray-400 uppercase tracking-wide">Last Workout</p>
+      <p className="text-xs text-gray-400 dark:text-gray-300 uppercase tracking-wide">
+        Last Workout
+      </p>
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading…</p>
       ) : !session ? (
@@ -31,20 +33,30 @@ export function LastWorkoutWidget() {
       ) : (
         <>
           <div>
-            <p className="font-semibold capitalize text-lg leading-tight">{session.name}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{timeAgo(session.completedAt)}</p>
+            <p className="font-semibold capitalize text-lg leading-tight">
+              {session.name}
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-300 mt-0.5">
+              {timeAgo(session.completedAt)}
+            </p>
           </div>
           <div className="flex gap-6 text-sm mt-1">
             <div>
-              <p className="text-gray-400 text-xs">Duration</p>
+              <p className="text-gray-400 dark:text-gray-300 text-xs">
+                Duration
+              </p>
               <p className="font-medium">{formatDuration(session.duration)}</p>
             </div>
             <div>
-              <p className="text-gray-400 text-xs">Volume</p>
-              <p className="font-medium">{session.totalWeight.toLocaleString()} kg</p>
+              <p className="text-gray-400 dark:text-gray-300 text-xs">Volume</p>
+              <p className="font-medium">
+                {session.totalWeight.toLocaleString()} kg
+              </p>
             </div>
             <div>
-              <p className="text-gray-400 text-xs">Exercises</p>
+              <p className="text-gray-400 dark:text-gray-300 text-xs">
+                Exercises
+              </p>
               <p className="font-medium">{session.exercises.length}</p>
             </div>
           </div>

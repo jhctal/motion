@@ -11,6 +11,7 @@ import useListLogs, {
 import { useDeleteLog } from "../../api/logged-workouts/use-delete-log";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
 import cn from "../../utils/cn";
+import Button from "../../ui/button/button";
 
 export const Route = createFileRoute("/my-logs/")({
   beforeLoad: async () => {
@@ -30,15 +31,12 @@ function RouteComponent() {
   return (
     <PageWrapper pageName="Your Workouts">
       <div className="flex items-center justify-between mb-3 mt-2">
-        <span className="text-sm text-gray-400">
+        <span className="text-sm text-gray-400 dark:text-gray-300">
           {data?.workoutSessions.length ?? 0} sessions
         </span>
-        <button
-          className="px-3 py-1 bg-orange-500 text-black text-sm font-medium rounded hover:bg-orange-400"
-          onClick={() => goTo({ to: "/my-logs/new" })}
-        >
+        <Button onClick={() => goTo({ to: "/my-logs/new" })}>
           + Log workout
-        </button>
+        </Button>
       </div>
       <div className="flex flex-col gap-2">
         {data?.workoutSessions.map((session) => (
@@ -139,7 +137,7 @@ function SessionCard({
           </span>
           <StatusBadge className="hidden md:block" status={session.status} />
         </div>
-        <div className="text-xs text-gray-400 flex gap-3">
+        <div className="text-xs text-gray-400 dark:text-gray-300 flex gap-3">
           <span>{formatDate(session.createdAt)}</span>
           {session.exercises.length > 0 && (
             <span className="hidden md:block">
@@ -156,7 +154,7 @@ function SessionCard({
         <div className="flex items-center gap-1.5 px-3 border-l shrink-0">
           <button
             onClick={() => setConfirming(false)}
-            className="px-2 py-1.5 text-xs text-gray-400 border rounded-lg hover:bg-white/5"
+            className="px-2 py-1.5 text-xs text-gray-400 dark:text-gray-300 border rounded-lg hover:bg-white/5"
           >
             No
           </button>

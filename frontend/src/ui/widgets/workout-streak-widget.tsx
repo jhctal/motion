@@ -72,7 +72,9 @@ export function WorkoutStreakWidget() {
 
   return (
     <div className="border rounded-lg p-4 flex flex-col gap-3 h-full">
-      <p className="text-xs text-gray-400 uppercase tracking-wide">Streak</p>
+      <p className="text-xs text-gray-400 dark:text-gray-300 uppercase tracking-wide">
+        Streak
+      </p>
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading…</p>
       ) : (
@@ -81,7 +83,7 @@ export function WorkoutStreakWidget() {
           <div>
             <p className="text-3xl font-bold leading-none">
               {streak}
-              <span className="text-lg font-normal text-gray-400 ml-1">
+              <span className="text-lg font-normal text-gray-400 dark:text-gray-300 ml-1">
                 day{streak !== 1 ? "s" : ""}
               </span>
             </p>

@@ -177,14 +177,14 @@ function NewLog() {
                     <p className="font-medium capitalize text-sm truncate">
                       {exercise.name}
                     </p>
-                    <p className="text-xs text-gray-400 capitalize">
+                    <p className="text-xs text-gray-400 dark:text-gray-300 capitalize">
                       {exercise.mainTargetMuscle}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => removeExercise(exercise.uid)}
-                    className="text-gray-400 hover:text-red-400 text-lg leading-none"
+                    className="text-gray-400 dark:text-gray-300 hover:text-red-400 text-lg leading-none"
                   >
                     ×
                   </button>
@@ -194,7 +194,7 @@ function NewLog() {
           )}
 
           {selectedExercises.length === 0 && (
-            <p className="text-gray-400 text-sm py-6 text-center border rounded">
+            <p className="text-gray-400 dark:text-gray-300 text-sm py-6 text-center border rounded">
               Add at least one exercise to start
             </p>
           )}

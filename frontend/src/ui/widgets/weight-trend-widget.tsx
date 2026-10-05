@@ -39,14 +39,17 @@ export function WeightTrendWidget() {
   });
 
   const sorted = [...(data ?? [])].sort(
-    (a, b) => new Date(a.measuredDate).getTime() - new Date(b.measuredDate).getTime()
+    (a, b) =>
+      new Date(a.measuredDate).getTime() - new Date(b.measuredDate).getTime(),
   );
   const latest = sorted[sorted.length - 1];
   const values = sorted.map((m) => m.value);
 
   return (
     <div className="border rounded-lg p-4 flex flex-col gap-2">
-      <p className="text-xs text-gray-400 uppercase tracking-wide">Weight</p>
+      <p className="text-xs text-gray-400 dark:text-gray-300 uppercase tracking-wide">
+        Weight
+      </p>
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading…</p>
       ) : !latest ? (
@@ -55,7 +58,9 @@ export function WeightTrendWidget() {
         <>
           <div className="flex items-end gap-2">
             <span className="text-3xl font-bold">{latest.value}</span>
-            <span className="text-gray-400 mb-0.5">{latest.unit}</span>
+            <span className="text-gray-400 dark:text-gray-300 mb-0.5">
+              {latest.unit}
+            </span>
             {!!latest.change && (
               <span
                 className={`text-sm mb-0.5 ${latest.change < 0 ? "text-green-400" : "text-red-400"}`}

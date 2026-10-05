@@ -7,6 +7,7 @@ import {
   useDeleteSleepLog,
   SleepLog,
 } from "../../api/sleep/use-sleep-logs";
+import Button from "../../ui/button/button";
 
 export const Route = createFileRoute("/sleep/")({
   component: RouteComponent,
@@ -44,30 +45,38 @@ function RouteComponent() {
       {
         onSuccess: () => {
           setShowForm(false);
-          setForm({ date: today, bedTime: "", wakeTime: "", quality: "good", notes: "" });
+          setForm({
+            date: today,
+            bedTime: "",
+            wakeTime: "",
+            quality: "good",
+            notes: "",
+          });
         },
-      }
+      },
     );
   };
 
   return (
     <PageWrapper pageName="Sleep">
       <div className="flex flex-col gap-4 mt-4">
-        <button
-          className="self-start px-4 py-2 bg-blue-500 text-white rounded"
-          onClick={() => setShowForm((v) => !v)}
-        >
+        <Button className="w-fit" onClick={() => setShowForm((v) => !v)}>
           {showForm ? "Cancel" : "Log Sleep"}
-        </button>
+        </Button>
 
         {showForm && (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3 border p-4 rounded max-w-md">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-3 border p-4 rounded max-w-md"
+          >
             <label className="flex flex-col gap-1 text-sm">
               Date
               <input
                 type="date"
                 value={form.date}
-                onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, date: e.target.value }))
+                }
                 className="border rounded p-1"
                 required
               />
@@ -77,7 +86,9 @@ function RouteComponent() {
               <input
                 type="time"
                 value={form.bedTime}
-                onChange={(e) => setForm((f) => ({ ...f, bedTime: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, bedTime: e.target.value }))
+                }
                 className="border rounded p-1"
                 required
               />
@@ -87,7 +98,9 @@ function RouteComponent() {
               <input
                 type="time"
                 value={form.wakeTime}
-                onChange={(e) => setForm((f) => ({ ...f, wakeTime: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, wakeTime: e.target.value }))
+                }
                 className="border rounded p-1"
                 required
               />
@@ -96,11 +109,18 @@ function RouteComponent() {
               Quality
               <select
                 value={form.quality}
-                onChange={(e) => setForm((f) => ({ ...f, quality: e.target.value as SleepLog["quality"] }))}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    quality: e.target.value as SleepLog["quality"],
+                  }))
+                }
                 className="border rounded p-1"
               >
                 {QUALITY_OPTIONS.map((q) => (
-                  <option key={q} value={q}>{q.charAt(0).toUpperCase() + q.slice(1)}</option>
+                  <option key={q} value={q}>
+                    {q.charAt(0).toUpperCase() + q.slice(1)}
+                  </option>
                 ))}
               </select>
             </label>
@@ -109,7 +129,9 @@ function RouteComponent() {
               <input
                 type="text"
                 value={form.notes}
-                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, notes: e.target.value }))
+                }
                 className="border rounded p-1"
                 placeholder="e.g. restless, vivid dreams"
               />
@@ -128,7 +150,11 @@ function RouteComponent() {
 
         <div className="flex flex-col gap-2">
           {logs?.map((log) => (
-            <SleepCard key={log._id} log={log} onDelete={() => deleteLog.mutate(log._id)} />
+            <SleepCard
+              key={log._id}
+              log={log}
+              onDelete={() => deleteLog.mutate(log._id)}
+            />
           ))}
         </div>
       </div>
@@ -143,12 +169,18 @@ function SleepCard({ log, onDelete }: { log: SleepLog; onDelete: () => void }) {
   return (
     <div className="flex items-center justify-between border p-3 rounded gap-4">
       <div className="flex gap-4">
-        <div className="font-medium">{new Date(log.date).toLocaleDateString()}</div>
-        <div>{hours}h {mins}m</div>
+        <div className="font-medium">
+          {new Date(log.date).toLocaleDateString()}
+        </div>
+        <div>
+          {hours}h {mins}m
+        </div>
         <div className="capitalize">{log.quality}</div>
         {log.notes && <div className="text-gray-500 text-sm">{log.notes}</div>}
       </div>
-      <button onClick={onDelete} className="text-red-400 text-sm">Delete</button>
+      <button onClick={onDelete} className="text-red-400 text-sm">
+        Delete
+      </button>
     </div>
   );
 }

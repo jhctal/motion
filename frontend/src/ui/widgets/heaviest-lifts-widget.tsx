@@ -12,7 +12,7 @@ export function HeaviestLiftsWidget() {
 
   return (
     <div className="border rounded-lg p-4 flex flex-col gap-3">
-      <p className="text-xs text-gray-400 uppercase tracking-wide">
+      <p className="text-xs text-gray-400 dark:text-gray-300 uppercase tracking-wide">
         Heaviest Lifts
       </p>
 
@@ -29,11 +29,13 @@ export function HeaviestLiftsWidget() {
               key={lift.key}
               className="flex flex-col gap-0.5 border rounded-lg px-3 py-2"
             >
-              <span className="text-xs text-gray-400">{lift.label}</span>
+              <span className="text-xs text-gray-400 dark:text-gray-300">
+                {lift.label}
+              </span>
               {lift.weight != null ? (
                 <span className="text-lg font-bold leading-tight">
                   {lift.weight}
-                  <span className="text-sm font-normal text-gray-400 ml-0.5">
+                  <span className="text-sm font-normal text-gray-400 dark:text-gray-300 ml-0.5">
                     kg
                   </span>
                 </span>

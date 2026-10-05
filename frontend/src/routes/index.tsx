@@ -7,7 +7,6 @@ import { WorkoutFrequencyWidget } from "../ui/widgets/workout-frequency-widget";
 import { WeightTrendWidget } from "../ui/widgets/weight-trend-widget";
 import { TotalLiftedWidget } from "../ui/widgets/total-lifted-widget";
 import { TotalWorkoutsWidget } from "../ui/widgets/total-workouts-widget";
-import { HeaviestLiftsWidget } from "../ui/widgets/heaviest-lifts-widget";
 
 export const Route = createFileRoute("/")({
   beforeLoad: async ({ location }) => {
@@ -28,7 +27,7 @@ export const Route = createFileRoute("/")({
 function Homepage() {
   return (
     <PageWrapper pageName="Dashboard">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 py-4 md:pb-0 h-full">
         <div className="md:col-span-3">
           <TotalWorkoutsWidget />
         </div>
@@ -39,16 +38,13 @@ function Homepage() {
           <TotalLiftedWidget />
         </div>
         <div>
-          <WorkoutFrequencyWidget />
+          <LastWorkoutWidget />
         </div>
         <div className="md:col-span-2">
-          <LastWorkoutWidget />
+          <WorkoutFrequencyWidget />
         </div>
         <div className="md:col-span-3">
           <WeightTrendWidget />
-        </div>
-        <div className="md:col-span-3">
-          <HeaviestLiftsWidget />
         </div>
       </div>
     </PageWrapper>

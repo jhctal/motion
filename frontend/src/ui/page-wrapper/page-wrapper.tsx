@@ -1,16 +1,19 @@
 import { PropsWithChildren } from "react";
+import cn from "../../utils/cn";
 
 type PageWrapperType = {
-  pageName: string;
+  pageName?: string;
+  className?: string;
 };
 
 const PageWrapper = ({
   children,
-  pageName = "Page Name",
+  className,
+  pageName,
 }: PropsWithChildren<PageWrapperType>) => {
   return (
-    <div className="p-2 h-full">
-      <div className="font-semibold text-xl">{pageName}</div>
+    <div className={cn("p-2 h-full", className)}>
+      {pageName && <div className="font-semibold text-xl">{pageName}</div>}
       {children}
     </div>
   );

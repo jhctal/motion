@@ -38,7 +38,9 @@ function NewWorkout() {
   const [description, setDescription] = useState("");
   const [difficultyLevel, setDifficultyLevel] = useState<string>("beginner");
   const [estimatedDurationMinutes, setEstimatedDurationMinutes] = useState("");
-  const [selectedExercises, setSelectedExercises] = useState<SelectedExercise[]>([]);
+  const [selectedExercises, setSelectedExercises] = useState<
+    SelectedExercise[]
+  >([]);
 
   const availableExercises = allExercises?.filter(
     (ex) => !selectedExercises.some((sel) => sel.exerciseId === ex._id),
@@ -67,7 +69,10 @@ function NewWorkout() {
     const workout = await createWorkout.mutateAsync({
       name: name.trim(),
       description: description.trim() || undefined,
-      difficultyLevel: difficultyLevel as "beginner" | "intermediate" | "advanced",
+      difficultyLevel: difficultyLevel as
+        | "beginner"
+        | "intermediate"
+        | "advanced",
       estimatedDurationMinutes: estimatedDurationMinutes
         ? Number(estimatedDurationMinutes)
         : undefined,
@@ -87,7 +92,10 @@ function NewWorkout() {
 
   return (
     <PageWrapper pageName="New workout">
-      <form onSubmit={handleSubmit} className="max-w-2xl flex flex-col gap-5 mt-2">
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-2xl flex flex-col gap-5 mt-2"
+      >
         <div>
           <label className="block text-sm font-medium mb-1">Name *</label>
           <input
@@ -154,7 +162,9 @@ function NewWorkout() {
                 ? "— no more exercises —"
                 : "— add an exercise —"}
             </option>
-            {availableExercises && <ExerciseOptGroups exercises={availableExercises} />}
+            {availableExercises && (
+              <ExerciseOptGroups exercises={availableExercises} />
+            )}
           </select>
 
           {selectedExercises.length > 0 && (
@@ -164,17 +174,21 @@ function NewWorkout() {
                   key={ex.uid}
                   className="border rounded p-3 flex items-center gap-3"
                 >
-                  <span className="text-gray-400 text-sm w-5">{i + 1}</span>
+                  <span className="text-gray-400 dark:text-gray-300 text-sm w-5">
+                    {i + 1}
+                  </span>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium capitalize text-sm truncate">{ex.name}</p>
-                    <p className="text-xs text-gray-400 capitalize">
+                    <p className="font-medium capitalize text-sm truncate">
+                      {ex.name}
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-300 capitalize">
                       {ex.mainTargetMuscle}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => removeExercise(ex.uid)}
-                    className="text-gray-400 hover:text-red-400 text-lg leading-none"
+                    className="text-gray-400 dark:text-gray-300 hover:text-red-400 text-lg leading-none"
                   >
                     ×
                   </button>

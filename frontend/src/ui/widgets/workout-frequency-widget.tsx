@@ -3,7 +3,10 @@ import { useWorkoutSessions } from "../../api/workouts/use-workout-sessions";
 const WEEKDAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
 
 function toDayKey(d: Date) {
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 // Intensity ramp for a day's cell: 0 sessions -> neutral, 1 -> orange-400, 2+ -> orange-600.
@@ -38,15 +41,26 @@ export function WorkoutFrequencyWidget() {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   // getDay() is Sunday-based (0-6); shift so the week starts on Monday.
   const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-  const cells: (Date | null)[] = [
-    ...Array.from({ length: firstWeekday }, () => null),
-    ...Array.from(
-      { length: daysInMonth },
-      (_, i) => new Date(year, month, i + 1),
-    ),
+  // Pad the grid with adjacent-month days so every row stays a full week.
+  const cells: { date: Date; isCurrentMonth: boolean }[] = [
+    ...Array.from({ length: firstWeekday }, (_, i) => ({
+      date: new Date(year, month - 1, daysInPrevMonth - firstWeekday + i + 1),
+      isCurrentMonth: false,
+    })),
+    ...Array.from({ length: daysInMonth }, (_, i) => ({
+      date: new Date(year, month, i + 1),
+      isCurrentMonth: true,
+    })),
   ];
-  while (cells.length % 7 !== 0) cells.push(null);
+  const trailingDays = (7 - (cells.length % 7)) % 7;
+  cells.push(
+    ...Array.from({ length: trailingDays }, (_, i) => ({
+      date: new Date(year, month + 1, i + 1),
+      isCurrentMonth: false,
+    })),
+  );
 
   const activeDays = countsByDay.size;
   const monthLabel = now.toLocaleDateString(undefined, {
@@ -57,16 +71,19 @@ export function WorkoutFrequencyWidget() {
   return (
     <div className="border rounded-lg p-4 flex flex-col gap-3 h-full">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-400 uppercase tracking-wide">
+        <p className="text-xs text-gray-400 dark:text-gray-300 uppercase tracking-wide">
           Workout Frequency
         </p>
         <p className="text-xs text-gray-500">{monthLabel}</p>
       </div>
+      <p className="text-xs text-gray-500">
+        {activeDays} day{activeDays !== 1 ? "s" : ""} active
+      </p>
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading…</p>
       ) : (
-        <div className="flex items-start gap-4">
-          <div className="flex gap-1">
+        <div className="flex items-start gap-4 h-full ">
+          <div className="flex gap-1 w-full h-full">
             <div className="grid grid-rows-7 gap-1 justify-center items-center">
               {WEEKDAY_LABELS.map((label, i) => (
                 <span
@@ -77,9 +94,18 @@ export function WorkoutFrequencyWidget() {
                 </span>
               ))}
             </div>
-            <div className="grid grid-rows-7 grid-flow-col gap-1">
-              {cells.map((date, i) => {
-                if (!date) return <div key={i} className="w-6 h-6" />;
+            <div className="grid grid-rows-7 flex-1 grid-flow-col gap-1 h-full">
+              {cells.map(({ date, isCurrentMonth }, i) => {
+                if (!isCurrentMonth) {
+                  return (
+                    <div
+                      key={i}
+                      className="w-full h-full border border-transparent rounded-sm text-xs flex justify-center items-center text-gray-300 dark:text-zinc-700"
+                    >
+                      {date.getDate()}
+                    </div>
+                  );
+                }
 
                 const key = toDayKey(date);
                 const count = countsByDay.get(key) ?? 0;
@@ -94,11 +120,11 @@ export function WorkoutFrequencyWidget() {
                         ? undefined
                         : `${date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}: ${count} workout${count !== 1 ? "s" : ""}`
                     }
-                    className={`w-6 h-6 border rounded-sm text-xs flex justify-center items-center ${
+                    className={`w-full h-full border rounded-sm text-xs flex justify-center items-center ${
                       isFuture
                         ? "border-dashed text-gray-300 dark:text-zinc-700"
                         : cellClass(count)
-                    } ${isToday ? "ring-1 ring-inset ring-black/40 dark:ring-white/70" : ""}`}
+                    } ${isToday ? " text-orange-500" : ""}`}
                   >
                     {date.getDate()}
                   </div>
@@ -106,9 +132,6 @@ export function WorkoutFrequencyWidget() {
               })}
             </div>
           </div>
-          <p className="text-xs text-gray-500 ml-auto self-end">
-            {activeDays} day{activeDays !== 1 ? "s" : ""} active
-          </p>
         </div>
       )}
     </div>

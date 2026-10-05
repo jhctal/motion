@@ -8,6 +8,7 @@ import {
   useListExercises,
 } from "../../api/exercises/use-list-exercises";
 import { usePendingExercises } from "../../api/exercises/use-pending-exercises";
+import Button from "../../ui/button/button";
 
 export const Route = createFileRoute("/exercises/")({
   beforeLoad: async ({ location }) => {
@@ -79,14 +80,11 @@ function ExerciseIndex() {
       {/* Exercises grouped by category */}
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-gray-400 dark:text-gray-300">
             {exercises?.length ?? 0} exercises
           </span>
-          <Link
-            to="/exercises/new"
-            className="px-3 py-1.5 bg-orange-500 text-black text-sm font-semibold rounded-lg hover:bg-orange-400"
-          >
-            + New exercise
+          <Link to="/exercises/new">
+            <Button>+ New exercise</Button>
           </Link>
         </div>
 
@@ -118,7 +116,14 @@ function PendingExerciseRow({
   isApproving,
   isRejecting,
 }: {
-  ex: { _id: string; name: string; category?: string; mainTargetMuscle?: string; difficulty?: string; user: { first_name: string; last_name: string } };
+  ex: {
+    _id: string;
+    name: string;
+    category?: string;
+    mainTargetMuscle?: string;
+    difficulty?: string;
+    user: { first_name: string; last_name: string };
+  };
   onApprove: () => void;
   onReject: () => void;
   isApproving: boolean;
@@ -130,7 +135,7 @@ function PendingExerciseRow({
     <div className="border rounded-lg p-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
         <p className="font-semibold capitalize text-sm">{ex.name}</p>
-        <p className="text-xs text-gray-400 capitalize mt-0.5">
+        <p className="text-xs text-gray-400 dark:text-gray-300 capitalize mt-0.5">
           {ex.category} · {ex.mainTargetMuscle} · {ex.difficulty}
         </p>
         <p className="text-xs text-gray-500 mt-0.5">
@@ -149,12 +154,15 @@ function PendingExerciseRow({
           <>
             <button
               onClick={() => setConfirming(false)}
-              className="px-3 py-1.5 border text-xs text-gray-400 rounded-lg hover:bg-white/5"
+              className="px-3 py-1.5 border text-xs text-gray-400 dark:text-gray-300 rounded-lg hover:bg-white/5"
             >
               Cancel
             </button>
             <button
-              onClick={() => { onReject(); setConfirming(false); }}
+              onClick={() => {
+                onReject();
+                setConfirming(false);
+              }}
               disabled={isRejecting}
               className="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500 disabled:opacity-40"
             >
