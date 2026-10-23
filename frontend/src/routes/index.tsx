@@ -1,12 +1,12 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import PageWrapper from "../ui/page-wrapper/page-wrapper";
-import { LastWorkoutWidget } from "../ui/widgets/last-workout-widget";
-import { WorkoutStreakWidget } from "../ui/widgets/workout-streak-widget";
-import { WorkoutFrequencyWidget } from "../ui/widgets/workout-frequency-widget";
-import { WeightTrendWidget } from "../ui/widgets/weight-trend-widget";
-import { TotalLiftedWidget } from "../ui/widgets/total-lifted-widget";
-import { TotalWorkoutsWidget } from "../ui/widgets/total-workouts-widget";
+import PageWrapper from "#ui/page-wrapper/page-wrapper";
+import { LastWorkoutWidget } from "#ui/widgets/last-workout-widget";
+import { WorkoutStreakWidget } from "#ui/widgets/workout-streak-widget";
+import { WorkoutFrequencyWidget } from "#ui/widgets/workout-frequency-widget";
+import { WeightTrendWidget } from "#ui/widgets/weight-trend-widget";
+import { TotalLiftedWidget } from "#ui/widgets/total-lifted-widget";
+import { TotalWorkoutsWidget } from "#ui/widgets/total-workouts-widget";
 
 export const Route = createFileRoute("/")({
   beforeLoad: async ({ location }) => {

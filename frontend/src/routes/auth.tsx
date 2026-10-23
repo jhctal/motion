@@ -7,9 +7,9 @@ import {
 } from "@tanstack/react-router";
 import { useEffect } from "react";
 
-import useAuth from "../api/authentication/use-auth";
-import Input from "../ui/form/input";
-import Button from "../ui/button/button";
+import useAuth from "#api/authentication/use-auth";
+import Input from "#ui/form/input";
+import Button from "#ui/button/button";
 
 export const Route = createFileRoute("/auth")({
   component: RouteComponent,

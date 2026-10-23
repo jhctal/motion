@@ -1,3 +1,8 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+.stat {
+  counter-reset: n var (--num);
+  animation: count 2s;
+}
