@@ -2,6 +2,7 @@ import { useState } from "react";
 import Button from "../button/button";
 import Modal from "../modal";
 import TabButton from "../tab-button";
+import Input from "../form/input";
 import fetchAllLogs from "../../api/logged-workouts/fetch-all-logs";
 import { exportSessions } from "../../utils/export-logs";
 
@@ -129,7 +130,7 @@ const ExportLogsModal = ({ open, onClose }: ExportLogsModalProps) => {
         <div className="grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1 text-sm">
             From
-            <input
+            <Input
               type="date"
               value={from}
               max={to || today}
@@ -138,12 +139,11 @@ const ExportLogsModal = ({ open, onClose }: ExportLogsModalProps) => {
                 setPreset("custom");
                 setMessage(null);
               }}
-              className="border rounded px-2 py-1.5 bg-transparent dark:scheme-dark"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
             To
-            <input
+            <Input
               type="date"
               value={to}
               min={from || undefined}
@@ -153,7 +153,6 @@ const ExportLogsModal = ({ open, onClose }: ExportLogsModalProps) => {
                 setPreset("custom");
                 setMessage(null);
               }}
-              className="border rounded px-2 py-1.5 bg-transparent dark:[color-scheme:dark]"
             />
           </label>
         </div>

@@ -67,7 +67,7 @@ function unguard(value: string) {
 const REQUIRED_COLUMNS = ["session_name", "date", "exercise", "set_number"];
 
 export function csvToSessions(text: string): ImportedSession[] {
-  const [header, ...rows] = parseCsv(text.replace(/^﻿/, ""));
+  const [header, ...rows] = parseCsv(text.replace(/^\uFEFF/, ""));
   if (!header || REQUIRED_COLUMNS.some((col) => !header.includes(col))) {
     throw new Error("This CSV doesn't look like a workout export");
   }

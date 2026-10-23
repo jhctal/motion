@@ -79,16 +79,20 @@ export const useCompleteWorkoutSession = () => {
       rating,
       feeling,
       notes,
+      completedAt,
     }: {
       id: string;
       rating?: number;
       feeling?: string;
       notes?: string;
+      // ISO time the workout ended; defaults to now on the server
+      completedAt?: string;
     }) => {
       const response = await axios.put(`/api/workout-sessions/${id}/complete`, {
         rating,
         feeling,
         notes,
+        completedAt,
       });
       return response.data as WorkoutSession;
     },
@@ -116,7 +120,7 @@ export const useUpdateExerciseSet = () => {
     }) => {
       const response = await axios.put(
         `/api/workout-sessions/${sessionId}/exercises/${exerciseIndex}/sets`,
-        { setData }
+        { setData },
       );
       return response.data as WorkoutSession;
     },
@@ -143,12 +147,14 @@ export const useDeleteExerciseSet = () => {
       setNumber: number;
     }) => {
       const response = await axios.delete(
-        `/api/workout-sessions/${sessionId}/exercises/${exerciseIndex}/sets/${setNumber}`
+        `/api/workout-sessions/${sessionId}/exercises/${exerciseIndex}/sets/${setNumber}`,
       );
       return response.data as WorkoutSession;
     },
     onSuccess: (_, { sessionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["workout-session", sessionId] });
+      queryClient.invalidateQueries({
+        queryKey: ["workout-session", sessionId],
+      });
     },
   });
 };
@@ -167,12 +173,14 @@ export const useAddExerciseToSession = () => {
     }) => {
       const response = await axios.post(
         `/api/workout-sessions/${sessionId}/exercises`,
-        { exerciseId }
+        { exerciseId },
       );
       return response.data as WorkoutSession;
     },
     onSuccess: (_, { sessionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["workout-session", sessionId] });
+      queryClient.invalidateQueries({
+        queryKey: ["workout-session", sessionId],
+      });
     },
   });
 };
@@ -190,12 +198,14 @@ export const useRemoveExerciseFromSession = () => {
       exerciseIndex: number;
     }) => {
       const response = await axios.delete(
-        `/api/workout-sessions/${sessionId}/exercises/${exerciseIndex}`
+        `/api/workout-sessions/${sessionId}/exercises/${exerciseIndex}`,
       );
       return response.data as WorkoutSession;
     },
     onSuccess: (_, { sessionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["workout-session", sessionId] });
+      queryClient.invalidateQueries({
+        queryKey: ["workout-session", sessionId],
+      });
     },
   });
 };

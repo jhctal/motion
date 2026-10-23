@@ -1,13 +1,37 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { ClockIcon, TriangleAlertIcon } from "lucide-react";
 import { useState } from "react";
-import { useListExercises } from "../../api/exercises/use-list-exercises";
+import {
+  useListExercises,
+  type Exercise,
+} from "../../api/exercises/use-list-exercises";
 import useListWorkouts from "../../api/workouts/use-list-workouts";
 import {
   useCreateWorkoutSession,
   useStartWorkoutSession,
 } from "../../api/workouts/use-workout-sessions";
-import ExerciseOptGroups from "../../ui/exercise-opt-groups";
+import FilterableExerciseSelect from "../../ui/filterable-exercise-select";
+import Combobox, { ComboboxBadge } from "../../ui/combobox";
+import Input from "../../ui/form/input";
+import MuscleTag from "../../ui/muscle-tag";
+import {
+  formatRelativeDay,
+  formatSessionTitle,
+  formatTime,
+} from "../../utils/format-date";
+import useTrainingHistory from "../../api/workouts/use-training-history";
+import { isRecovering } from "../../utils/training-history";
+import { suggestExercises } from "../../utils/suggest-exercises";
+import PlanExerciseCard from "../../ui/plan-exercise-card";
+import ExerciseSuggestions from "../../ui/exercise-suggestions";
+import BodyMap from "../../ui/body-map";
+import {
+  ESTIMATE_DEFAULTS,
+  estimateWorkout,
+  type EstimateExercise,
+} from "../../utils/estimate-workout-time";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
+import Button from "../../ui/button/button";
 
 export const Route = createFileRoute("/my-logs/new")({
   beforeLoad: async () => {
@@ -25,7 +49,9 @@ type SessionExercise = {
   name: string;
   category: string;
   mainTargetMuscle: string;
-};
+  // Full exercise record, for card details and instructions
+  details?: Exercise;
+} & EstimateExercise;
 
 function NewLog() {
   const navigate = useNavigate();
@@ -62,6 +88,11 @@ function NewLog() {
         name: te.exercise.name,
         category: te.exercise.category ?? "strength",
         mainTargetMuscle: te.exercise.mainTargetMuscle,
+        durationMinutes: te.exercise.duration,
+        targetSets: te.targetSets,
+        restSeconds: te.restSeconds,
+        workSeconds: te.targetDurationSeconds,
+        details: te.exercise,
       }));
     setSelectedExercises(exercises);
   }
@@ -77,6 +108,8 @@ function NewLog() {
         name: exercise.name,
         category: exercise.category ?? "strength",
         mainTargetMuscle: exercise.mainTargetMuscle,
+        durationMinutes: exercise.duration,
+        details: exercise,
       },
     ]);
   }
@@ -85,21 +118,91 @@ function NewLog() {
     setSelectedExercises((prev) => prev.filter((ex) => ex.uid !== uid));
   }
 
+  function setExerciseSets(uid: string, sets: number) {
+    setSelectedExercises((prev) =>
+      prev.map((ex) => (ex.uid === uid ? { ...ex, targetSets: sets } : ex)),
+    );
+  }
+
+  // Exercise order is saved with the session, so let the user rearrange it
+  function moveExercise(from: number, to: number) {
+    setSelectedExercises((prev) => {
+      if (to < 0 || to >= prev.length || from === to) return prev;
+      const next = prev.slice();
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  }
+
+  const [draggingUid, setDraggingUid] = useState<string | null>(null);
+
+  // Muscles in this workout, most-worked first
+  const muscleCounts = Object.entries(
+    selectedExercises.reduce<Record<string, number>>((counts, ex) => {
+      if (ex.mainTargetMuscle) {
+        counts[ex.mainTargetMuscle] = (counts[ex.mainTargetMuscle] ?? 0) + 1;
+      }
+      return counts;
+    }, {}),
+  ).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+  const estimate = estimateWorkout(selectedExercises);
+
+  // One request covers recovery, "last time" figures and suggestions
+  const history = useTrainingHistory();
+  // Not memoised: recovery depends on the current time as well as the data,
+  // so a page left open must drop warnings once their window passes
+  const recent = new Map(
+    [...history.lastTrained].filter(([, date]) => isRecovering(date)),
+  );
+
+  // Muscles in this plan that were trained recently, most recent first
+  const recovering = muscleCounts
+    .map(([muscle]) => [muscle, recent.get(muscle.toLowerCase())] as const)
+    .filter((entry): entry is readonly [string, Date] => !!entry[1])
+    .sort((a, b) => b[1].getTime() - a[1].getTime());
+
   const availableExercises = allExercises?.filter(
     (ex) => !selectedExercises.some((sel) => sel.exerciseId === ex._id),
   );
+
+  const suggestions = suggestExercises({
+    planMuscles: selectedExercises.map((ex) => ex.mainTargetMuscle),
+    planExerciseIds: selectedExercises.map((ex) => ex.exerciseId),
+    exercises: allExercises ?? [],
+    lastTrained: history.lastTrained,
+  });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (selectedExercises.length === 0) return;
 
-    const name = sessionName.trim() || new Date().toLocaleDateString();
+    // the date is added when displayed (see formatSessionTitle), so don't store it here
+    const name = sessionName.trim() || "Workout";
 
-    const sessionExercises = selectedExercises.map((se) => ({
-      exercise: se.exerciseId,
-      sets: [],
-    }));
+    // Create the planned sets up front, pre-filled from last time where known
+    const sessionExercises = selectedExercises.map((se) => {
+      const isCardio = se.category === "cardio";
+      const last = history.lastPerformance.get(se.exerciseId)?.sets ?? [];
+      return {
+        exercise: se.exerciseId,
+        sets: Array.from(
+          { length: se.targetSets ?? ESTIMATE_DEFAULTS.sets },
+          (_, i) => {
+            const prev = last[Math.min(i, last.length - 1)];
+            return {
+              setNumber: i + 1,
+              reps: isCardio ? 0 : (prev?.reps ?? 5),
+              weight: isCardio ? 0 : (prev?.weight ?? 0),
+              durationInSeconds: isCardio ? prev?.durationInSeconds || 60 : 0,
+              completed: false,
+            };
+          },
+        ),
+      };
+    });
 
     const session = await createSession.mutateAsync({
       name,
@@ -115,99 +218,357 @@ function NewLog() {
 
   return (
     <PageWrapper pageName="New workout">
-      <form onSubmit={handleSubmit} className="max-w-2xl flex flex-col gap-6">
-        {/* Session name */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Workout name</label>
-          <input
-            type="text"
-            placeholder="e.g. Push Day"
-            className="w-full p-2 border rounded bg-transparent"
-            value={sessionName}
-            onChange={(e) => setSessionName(e.target.value)}
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-2xl lg:max-w-6xl grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start"
+      >
+        <div className="flex flex-col gap-6 min-w-0">
+          {/* Session name */}
+          <div className="flex flex-col gap-1.5">
+            <Input
+              className="capitalize"
+              label="Workout name"
+              type="text"
+              placeholder="e.g. Push Day"
+              value={sessionName}
+              onChange={(e) => setSessionName(e.target.value)}
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+              {formatSessionTitle({
+                name: sessionName.trim() || "Workout",
+                createdAt: new Date(),
+              })}
+            </p>
+          </div>
+
+          {/* Pickers sit side by side when there's room */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium mb-1.5">
+                Start from a template (optional)
+              </label>
+              <Combobox
+                items={workouts ?? []}
+                getKey={(w) => w._id}
+                getLabel={(w) => w.name}
+                getSearchText={(w) =>
+                  `${w.description ?? ""} ${w.difficultyLevel ?? ""} ${w.exercises
+                    .map((te) => te.exercise.name)
+                    .join(" ")}`
+                }
+                renderMeta={(w) => (
+                  <ComboboxBadge>
+                    {w.exercises.length} exercise
+                    {w.exercises.length === 1 ? "" : "s"}
+                  </ComboboxBadge>
+                )}
+                value={selectedTemplateId}
+                onSelect={(w) => handleTemplateChange(w._id)}
+                onClear={() => handleTemplateChange("")}
+                placeholder="No template — search templates…"
+                noun="template"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1.5">
+                Add exercises
+              </label>
+              <FilterableExerciseSelect
+                exercises={availableExercises ?? []}
+                onSelect={handleAddExercise}
+                disabled={
+                  !availableExercises || availableExercises.length === 0
+                }
+                placeholder={
+                  !availableExercises || availableExercises.length === 0
+                    ? "— all exercises added —"
+                    : "Search exercises to add…"
+                }
+              />
+            </div>
+          </div>
+
+          {/* Workout plan */}
+          <section className="flex flex-col gap-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="text-sm font-medium">
+                Your workout
+                {selectedExercises.length > 0 && (
+                  <span className="ml-1.5 text-gray-500 dark:text-gray-400 font-normal">
+                    {selectedExercises.length} exercise
+                    {selectedExercises.length === 1 ? "" : "s"}
+                  </span>
+                )}
+              </h2>
+              {selectedExercises.length > 1 && (
+                <span className="hidden md:block text-xs text-gray-500 dark:text-gray-400">
+                  Drag to reorder
+                </span>
+              )}
+            </div>
+
+            {selectedExercises.length > 0 ? (
+              <ol className="grid grid-cols-1 gap-2 md:grid-cols-2 md:items-start">
+                {selectedExercises.map((exercise, index) => (
+                  <PlanExerciseCard
+                    key={exercise.uid}
+                    index={index}
+                    total={selectedExercises.length}
+                    name={exercise.name}
+                    mainTargetMuscle={exercise.mainTargetMuscle}
+                    category={exercise.category}
+                    details={exercise.details}
+                    sets={exercise.targetSets ?? ESTIMATE_DEFAULTS.sets}
+                    onSetsChange={(sets) =>
+                      setExerciseSets(
+                        exercise.uid,
+                        Math.min(10, Math.max(1, sets)),
+                      )
+                    }
+                    lastPerformance={history.lastPerformance.get(
+                      exercise.exerciseId,
+                    )}
+                    recoveringSince={recent.get(
+                      exercise.mainTargetMuscle?.toLowerCase() ?? "",
+                    )}
+                    dragging={draggingUid === exercise.uid}
+                    dragProps={{
+                      draggable: true,
+                      onDragStart: (e) => {
+                        setDraggingUid(exercise.uid);
+                        e.dataTransfer.effectAllowed = "move";
+                      },
+                      onDragOver: (e) => {
+                        e.preventDefault();
+                        const from = selectedExercises.findIndex(
+                          (ex) => ex.uid === draggingUid,
+                        );
+                        if (from !== -1) moveExercise(from, index);
+                      },
+                      onDragEnd: () => setDraggingUid(null),
+                    }}
+                    onMove={(delta) => moveExercise(index, index + delta)}
+                    onRemove={() => removeExercise(exercise.uid)}
+                  />
+                ))}
+              </ol>
+            ) : (
+              <p className="text-gray-400 dark:text-gray-300 text-sm py-10 text-center border border-dashed border-gray-300 dark:border-zinc-700 rounded-lg">
+                Add at least one exercise, or start from a template
+              </p>
+            )}
+          </section>
+
+          <ExerciseSuggestions
+            suggestions={suggestions}
+            onAdd={handleAddExercise}
           />
         </div>
 
-        {/* Template picker */}
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Start from a template (optional)
-          </label>
-          <select
-            value={selectedTemplateId}
-            onChange={(e) => handleTemplateChange(e.target.value)}
-            className="w-full p-2 border rounded bg-transparent capitalize"
-          >
-            <option value="">— no template —</option>
-            {workouts?.map((w) => (
-              <option key={w._id} value={w._id} className="capitalize">
-                {w.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Exercise picker — all exercises */}
-        <div className="flex flex-col gap-3">
-          <label className="block text-sm font-medium">Exercises</label>
-          <select
-            value=""
-            onChange={(e) => handleAddExercise(e.target.value)}
-            className="w-full p-2 border rounded bg-transparent capitalize"
-            disabled={!availableExercises || availableExercises.length === 0}
-          >
-            <option value="">
-              {!availableExercises || availableExercises.length === 0
-                ? "— all exercises added —"
-                : "— add an exercise —"}
-            </option>
-            {availableExercises && (
-              <ExerciseOptGroups exercises={availableExercises} />
-            )}
-          </select>
-
-          {selectedExercises.length > 0 && (
-            <div className="flex flex-col gap-2">
-              {selectedExercises.map((exercise) => (
-                <div
-                  key={exercise.uid}
-                  className="border rounded p-3 flex items-center gap-3"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium capitalize text-sm truncate">
-                      {exercise.name}
-                    </p>
-                    <p className="text-xs text-gray-400 dark:text-gray-300 capitalize">
-                      {exercise.mainTargetMuscle}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeExercise(exercise.uid)}
-                    className="text-gray-400 dark:text-gray-300 hover:text-red-400 text-lg leading-none"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {selectedExercises.length === 0 && (
-            <p className="text-gray-400 dark:text-gray-300 text-sm py-6 text-center border rounded">
-              Add at least one exercise to start
-            </p>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          disabled={isSubmitting || selectedExercises.length === 0}
-          className="w-full py-3 bg-orange-500 text-black font-semibold rounded hover:bg-orange-400 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? "Starting..." : "Start workout"}
-        </button>
+        {/* Summary: sits beside the plan on large screens, below it on small ones */}
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-0">
+          <WorkoutSummary
+            minutes={estimate.minutes}
+            sets={estimate.sets}
+            exerciseCount={selectedExercises.length}
+            muscleCounts={muscleCounts}
+            recovering={recovering}
+            recent={recent}
+          />
+          <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-zinc-700 md:mt-2 lg:mt-0 lg:pt-0 lg:border-0 lg:flex-col-reverse">
+            <Button
+              variant="outline"
+              className="flex-1 lg:flex-none h-auto py-3"
+              disabled={isSubmitting}
+              onClick={() => navigate({ to: "/my-logs" })}
+            >
+              Cancel
+            </Button>
+            <button
+              type="submit"
+              disabled={isSubmitting || selectedExercises.length === 0}
+              className="flex-1 lg:flex-none py-3 bg-orange-500 text-black font-semibold rounded-lg hover:bg-orange-400 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Starting..." : "Start workout"}
+            </button>
+          </div>
+        </aside>
       </form>
     </PageWrapper>
+  );
+}
+
+function formatMinutes(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+  const rest = minutes % 60;
+  return rest
+    ? `${Math.floor(minutes / 60)} h ${rest} min`
+    : `${minutes / 60} h`;
+}
+
+function WorkoutSummary({
+  minutes,
+  sets,
+  exerciseCount,
+  muscleCounts,
+  recovering,
+  recent,
+}: {
+  minutes: number;
+  sets: number;
+  exerciseCount: number;
+  muscleCounts: [string, number][];
+  recovering: (readonly [string, Date])[];
+  recent: Map<string, Date>;
+}) {
+  const d = ESTIMATE_DEFAULTS;
+  const hasExercises = exerciseCount > 0;
+
+  return (
+    <>
+      {/* Phones: compact data strip */}
+      <div className="md:hidden rounded-lg border border-gray-300 dark:border-zinc-700 text-xs">
+        <dl className="grid grid-cols-3 divide-x divide-gray-300 dark:divide-zinc-700">
+          <div className="px-3 py-2">
+            <dt className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              Est. time
+            </dt>
+            <dd
+              className="text-sm font-semibold tabular-nums"
+              aria-live="polite"
+            >
+              {hasExercises ? `~${formatMinutes(minutes)}` : "—"}
+            </dd>
+          </div>
+          <div className="px-3 py-2">
+            <dt className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              Ends
+            </dt>
+            <dd className="text-sm font-semibold tabular-nums">
+              {hasExercises
+                ? formatTime(new Date(Date.now() + minutes * 60_000))
+                : "—"}
+            </dd>
+          </div>
+          <div className="px-3 py-2">
+            <dt className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              Ex / sets
+            </dt>
+            <dd className="text-sm font-semibold tabular-nums">
+              {hasExercises ? `${exerciseCount} / ~${sets}` : "—"}
+            </dd>
+          </div>
+        </dl>
+        {recovering.length > 0 && (
+          <p className="flex items-start gap-1.5 px-3 py-2 border-t border-gray-300 dark:border-zinc-700 text-amber-700 dark:text-amber-400">
+            <TriangleAlertIcon
+              size={13}
+              aria-hidden="true"
+              className="mt-px shrink-0"
+            />
+            <span>
+              Recently trained:{" "}
+              {recovering
+                .map(([m, d]) => `${m} (${formatRelativeDay(d)})`)
+                .join(", ")}
+            </span>
+          </p>
+        )}
+        {muscleCounts.length > 0 && (
+          <div className="flex flex-wrap gap-1 px-3 py-2 border-t border-gray-300 dark:border-zinc-700">
+            {muscleCounts.map(([muscle, count]) => (
+              <MuscleTag key={muscle} muscle={muscle} count={count} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Tablet and up: full card */}
+      <div className="hidden md:flex flex-col gap-5 p-5 rounded-lg border border-gray-300 bg-gray-50 dark:border-zinc-700 dark:bg-zinc-900">
+        <div>
+          <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <ClockIcon size={14} aria-hidden="true" />
+            Estimated time
+          </p>
+          {exerciseCount === 0 ? (
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              Add exercises to see how long this workout will take.
+            </p>
+          ) : (
+            <>
+              <p
+                className="mt-1 text-4xl font-semibold tabular-nums"
+                aria-live="polite"
+              >
+                ~{formatMinutes(minutes)}
+              </p>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Finish around{" "}
+                {formatTime(new Date(Date.now() + minutes * 60_000))}
+              </p>
+            </>
+          )}
+        </div>
+
+        {exerciseCount > 0 && (
+          <dl className="grid grid-cols-2 gap-3 text-sm">
+            <div className="rounded-lg bg-white dark:bg-zinc-800 px-3 py-2">
+              <dt className="text-xs text-gray-500 dark:text-gray-400">
+                Exercises
+              </dt>
+              <dd className="text-lg font-semibold tabular-nums">
+                {exerciseCount}
+              </dd>
+            </div>
+            <div className="rounded-lg bg-white dark:bg-zinc-800 px-3 py-2">
+              <dt className="text-xs text-gray-500 dark:text-gray-400">Sets</dt>
+              <dd className="text-lg font-semibold tabular-nums">~{sets}</dd>
+            </div>
+          </dl>
+        )}
+
+        <BodyMap worked={Object.fromEntries(muscleCounts)} recent={recent} />
+
+        {recovering.length > 0 && (
+          <div className="flex flex-col gap-1.5 rounded-lg border border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 px-3 py-2.5 text-sm text-amber-800 dark:text-amber-300">
+            <p className="flex items-center gap-1.5 font-medium">
+              <TriangleAlertIcon size={14} aria-hidden="true" />
+              Still recovering
+            </p>
+            <ul className="flex flex-col gap-0.5 text-xs">
+              {recovering.map(([muscle, date]) => (
+                <li key={muscle} className="capitalize">
+                  {muscle}{" "}
+                  <span className="normal-case opacity-80">
+                    — trained {formatRelativeDay(date)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {muscleCounts.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Muscles worked
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {muscleCounts.map(([muscle, count]) => (
+                <MuscleTag key={muscle} muscle={muscle} count={count} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {exerciseCount > 0 && (
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            Assumes {d.sets} sets of ~{d.workSeconds}s with {d.restSeconds}s
+            rest, unless the template says otherwise.
+          </p>
+        )}
+      </div>
+    </>
   );
 }

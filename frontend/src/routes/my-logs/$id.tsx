@@ -30,7 +30,10 @@ import {
 } from "../../api/workouts/use-workout-sessions";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
 import Button from "../../ui/button/button";
+import { formatDateTime, formatSessionTitle } from "../../utils/format-date";
 import { exportSessions } from "../../utils/export-logs";
+import Textarea from "../../ui/form/textarea";
+import Input from "../../ui/form/input";
 
 type SetValues = {
   reps: number;
@@ -95,7 +98,7 @@ function ActiveLog() {
           sets: (ex.sets ?? []).map((s) => ({
             reps: s.reps,
             weight: s.weight,
-            durationInSeconds: s.duration ?? 0,
+            durationInSeconds: s.durationInSeconds ?? 0,
           })),
         })),
         rating: 3,
@@ -117,12 +120,13 @@ function ActiveLog() {
     await removeExercise.mutateAsync({ sessionId, exerciseIndex });
   }
 
-  async function onFinish(data: FormValues) {
+  async function onFinish(data: FormValues, completedAt?: string) {
     await completeSession.mutateAsync({
       id: sessionId,
       rating: data.rating,
       feeling: data.feeling,
       notes: data.notes || undefined,
+      completedAt,
     });
     navigate({ to: "/my-logs" });
   }
@@ -164,7 +168,9 @@ function ActiveLog() {
       <PageWrapper>
         <BackToLogs />
         <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="font-semibold text-xl">{session.name}</div>
+          <div className="font-semibold text-xl capitalize">
+            {formatSessionTitle(session)}
+          </div>
           <div className="flex items-center gap-2 shrink-0">
             Download this workout:
             <Button
@@ -259,8 +265,12 @@ function ActiveLog() {
         {showFinishModal && (
           <FinishModal
             onClose={() => setShowFinishModal(false)}
-            onConfirm={handleSubmit(onFinish)}
+            onConfirm={(completedAt) =>
+              handleSubmit((data) => onFinish(data, completedAt))()
+            }
             isPending={completeSession.isPending}
+            startedAt={session.startedAt ?? session.createdAt}
+            lastActivityAt={session.updatedAt}
           />
         )}
 
@@ -300,16 +310,64 @@ function ActiveLog() {
   );
 }
 
+// Ask when the workout ended if Finish is pressed this long after starting
+const LATE_FINISH_HOURS = 3;
+
+// <input type="datetime-local"> wants local time without a timezone
+function toDateTimeLocal(d: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+type FinishChoice = "last" | "now" | "custom";
+
 function FinishModal({
   onClose,
   onConfirm,
   isPending,
+  startedAt,
+  lastActivityAt,
 }: {
   onClose: () => void;
-  onConfirm: () => void;
+  // completedAt is omitted when the workout ended just now
+  onConfirm: (completedAt?: string) => void;
   isPending: boolean;
+  startedAt: string;
+  // when the session was last changed, e.g. a set was saved
+  lastActivityAt?: string;
 }) {
   const { setValue, register } = useFormContext<FormValues>();
+
+  const [now] = useState(() => new Date());
+  const started = new Date(startedAt);
+  const isLate =
+    now.getTime() - started.getTime() > LATE_FINISH_HOURS * 60 * 60 * 1000;
+  const lastActivity =
+    lastActivityAt && new Date(lastActivityAt) > started
+      ? new Date(lastActivityAt)
+      : undefined;
+
+  const [choice, setChoice] = useState<FinishChoice>(
+    lastActivity ? "last" : "custom",
+  );
+  const [custom, setCustom] = useState(() =>
+    toDateTimeLocal(
+      lastActivity ??
+        new Date(Math.min(started.getTime() + 60 * 60 * 1000, now.getTime())),
+    ),
+  );
+  const customDate = new Date(custom);
+  const customInvalid =
+    choice === "custom" &&
+    (Number.isNaN(customDate.getTime()) ||
+      customDate < started ||
+      customDate > now);
+
+  function finishTime(): string | undefined {
+    if (!isLate || choice === "now") return undefined;
+    if (choice === "last" && lastActivity) return lastActivity.toISOString();
+    return customDate.toISOString();
+  }
   const rating = useWatch<FormValues, "rating">({ name: "rating" });
   const feeling = useWatch<FormValues, "feeling">({ name: "feeling" });
 
@@ -317,6 +375,54 @@ function FinishModal({
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className="bg-zinc-300 border rounded-lg p-6 w-full max-w-sm flex flex-col gap-4">
         <h2 className="text-lg font-semibold">How was your workout?</h2>
+
+        {isLate && (
+          <div className="flex flex-col gap-2 rounded-lg border border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 p-3">
+            <p className="text-sm font-medium">When did you finish?</p>
+            <p className="text-xs text-gray-600 dark:text-gray-300">
+              You started {formatDateTime(started)}, so this workout would be
+              logged as lasting{" "}
+              {Math.round((now.getTime() - started.getTime()) / 3_600_000)}{" "}
+              hours.
+            </p>
+            <div className="flex flex-col gap-1.5">
+              {lastActivity && (
+                <FinishOption
+                  selected={choice === "last"}
+                  onSelect={() => setChoice("last")}
+                  label="At my last activity"
+                  hint={formatDateTime(lastActivity)}
+                />
+              )}
+              <FinishOption
+                selected={choice === "custom"}
+                onSelect={() => setChoice("custom")}
+                label="At another time"
+              />
+              {choice === "custom" && (
+                <Input
+                  type="datetime-local"
+                  aria-label="Finish time"
+                  value={custom}
+                  min={toDateTimeLocal(started)}
+                  max={toDateTimeLocal(now)}
+                  onChange={(e) => setCustom(e.target.value)}
+                  className="py-2"
+                />
+              )}
+              <FinishOption
+                selected={choice === "now"}
+                onSelect={() => setChoice("now")}
+                label="Just now"
+              />
+            </div>
+            {customInvalid && (
+              <p className="text-xs text-red-500">
+                Pick a time between when you started and now.
+              </p>
+            )}
+          </div>
+        )}
 
         <div>
           <label className="block text-sm text-gray-400 dark:text-gray-300 mb-2">
@@ -368,10 +474,9 @@ function FinishModal({
           <label className="block text-sm text-gray-400 dark:text-gray-300 mb-2">
             Notes
           </label>
-          <textarea
+          <Textarea
             rows={3}
             placeholder="Any notes about this session..."
-            className="w-full p-3 border rounded-lg bg-transparent text-sm resize-none"
             {...register("notes")}
           />
         </div>
@@ -386,8 +491,8 @@ function FinishModal({
           </button>
           <button
             type="button"
-            onClick={onConfirm}
-            disabled={isPending}
+            onClick={() => onConfirm(finishTime())}
+            disabled={isPending || customInvalid}
             className="flex-1 py-4 bg-orange-500 text-black font-semibold rounded-lg hover:bg-orange-400 disabled:opacity-40"
           >
             {isPending ? "Saving..." : "Save & finish"}
@@ -395,6 +500,34 @@ function FinishModal({
         </div>
       </div>
     </div>
+  );
+}
+
+function FinishOption({
+  selected,
+  onSelect,
+  label,
+  hint,
+}: {
+  selected: boolean;
+  onSelect: () => void;
+  label: string;
+  hint?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg border text-sm text-left transition-colors ${
+        selected
+          ? "bg-orange-500 border-orange-500 text-black"
+          : "border-gray-300 dark:border-white/20 hover:border-orange-400"
+      }`}
+    >
+      {label}
+      {hint && <span className="text-xs opacity-80">{hint}</span>}
+    </button>
   );
 }
 
@@ -624,7 +757,7 @@ function ExerciseCard({
     const newSetValues: SetValues = {
       reps: isCardio ? 0 : (previousSet?.reps ?? 5),
       weight: isCardio ? 0 : (previousSet?.weight ?? 0),
-      durationInSeconds: isCardio ? (previousSet?.duration ?? 60) : 0,
+      durationInSeconds: isCardio ? (previousSet?.durationInSeconds ?? 60) : 0,
     };
 
     append(newSetValues);

@@ -3,8 +3,12 @@ import { useState } from "react";
 import { useListExercises } from "../../api/exercises/use-list-exercises";
 import { useAddExerciseToWorkout } from "../../api/workouts/use-add-exercise-to-workout";
 import { useCreateWorkout } from "../../api/workouts/use-create-workout";
-import ExerciseOptGroups from "../../ui/exercise-opt-groups";
+import FilterableExerciseSelect from "../../ui/filterable-exercise-select";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
+import Input from "../../ui/form/input";
+import Select from "../../ui/form/select";
+import Textarea from "../../ui/form/textarea";
+import Button from "../../ui/button/button";
 
 export const Route = createFileRoute("/workouts/new")({
   beforeLoad: async ({ location }) => {
@@ -98,74 +102,66 @@ function NewWorkout() {
       >
         <div>
           <label className="block text-sm font-medium mb-1">Name *</label>
-          <input
+          <Input
             required
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Push day"
-            className="w-full p-2 border rounded bg-transparent"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">Description</label>
-          <textarea
+          <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
-            className="w-full p-2 border rounded bg-transparent resize-none"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Difficulty</label>
-            <select
+            <Select
               value={difficultyLevel}
               onChange={(e) => setDifficultyLevel(e.target.value)}
-              className="w-full p-2 border rounded bg-transparent capitalize"
+              className="capitalize"
             >
               {DIFFICULTIES.map((d) => (
                 <option key={d} value={d} className="capitalize">
                   {d}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1">
               Estimated duration (mins)
             </label>
-            <input
+            <Input
               type="number"
               min={1}
               value={estimatedDurationMinutes}
               onChange={(e) => setEstimatedDurationMinutes(e.target.value)}
               placeholder="e.g. 60"
-              className="w-full p-2 border rounded bg-transparent"
             />
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-2">Exercises</label>
-          <select
-            value=""
-            onChange={(e) => handleAddExercise(e.target.value)}
-            className="w-full p-2 border rounded bg-transparent capitalize"
+          <FilterableExerciseSelect
+            exercises={availableExercises ?? []}
+            onSelect={handleAddExercise}
             disabled={!availableExercises || availableExercises.length === 0}
-          >
-            <option value="">
-              {!availableExercises || availableExercises.length === 0
+            placeholder={
+              !availableExercises || availableExercises.length === 0
                 ? "— no more exercises —"
-                : "— add an exercise —"}
-            </option>
-            {availableExercises && (
-              <ExerciseOptGroups exercises={availableExercises} />
-            )}
-          </select>
+                : "Search exercises to add…"
+            }
+          />
 
           {selectedExercises.length > 0 && (
             <div className="flex flex-col gap-2 mt-3">
@@ -198,13 +194,23 @@ function NewWorkout() {
           )}
         </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting || !name.trim()}
-          className="w-full py-3 bg-orange-500 text-black font-semibold rounded hover:bg-orange-400 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? "Creating..." : "Create workout"}
-        </button>
+        <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-zinc-700 md:mt-2">
+          <Button
+            variant="outline"
+            className="flex-1 h-auto py-3"
+            disabled={isSubmitting}
+            onClick={() => navigate({ to: "/workouts" })}
+          >
+            Cancel
+          </Button>
+          <button
+            type="submit"
+            disabled={isSubmitting || !name.trim()}
+            className="flex-1 py-3 bg-orange-500 text-black font-semibold rounded-lg hover:bg-orange-400 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? "Creating..." : "Create workout"}
+          </button>
+        </div>
       </form>
     </PageWrapper>
   );

@@ -2,7 +2,7 @@ export interface ExerciseSet {
   setNumber: number;
   reps: number;
   weight: number;
-  duration?: number;
+  durationInSeconds?: number;
   distance?: number;
   rpe?: number;
   restTime?: number;

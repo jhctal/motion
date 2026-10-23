@@ -11,6 +11,8 @@ import {
   type TrendDataPoint,
   type BodyMeasurement,
 } from "../../api/body-measurements/use-body-measurements";
+import Input from "../../ui/form/input";
+import Select from "../../ui/form/select";
 
 export const Route = createFileRoute("/measurements/")({
   beforeLoad: async ({ location }) => {
@@ -166,7 +168,7 @@ function MeasurementPanel({
           <div className="flex gap-2">
             <label className="flex flex-col gap-1 text-sm flex-1">
               {label}
-              <input
+              <Input
                 type="number"
                 min={0}
                 step="0.1"
@@ -174,7 +176,6 @@ function MeasurementPanel({
                 onChange={(e) =>
                   setForm((f) => ({ ...f, value: e.target.value }))
                 }
-                className="border rounded p-1"
                 placeholder="e.g. 32"
                 required
               />
@@ -182,43 +183,40 @@ function MeasurementPanel({
             {units.length > 1 && (
               <label className="flex flex-col gap-1 text-sm w-24">
                 Unit
-                <select
+                <Select
                   value={form.unit}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, unit: e.target.value }))
                   }
-                  className="border rounded p-1"
                 >
                   {units.map((u) => (
                     <option key={u} value={u}>
                       {u}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             )}
           </div>
           <label className="flex flex-col gap-1 text-sm">
             Date
-            <input
+            <Input
               type="date"
               value={form.measuredDate}
               onChange={(e) =>
                 setForm((f) => ({ ...f, measuredDate: e.target.value }))
               }
-              className="border rounded p-1"
               required
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
             Notes (optional)
-            <input
+            <Input
               type="text"
               value={form.notes}
               onChange={(e) =>
                 setForm((f) => ({ ...f, notes: e.target.value }))
               }
-              className="border rounded p-1"
             />
           </label>
           <button
@@ -445,7 +443,7 @@ function MeasurementEntry({
         <div className="flex gap-2">
           <label className="flex flex-col gap-1 text-sm flex-1">
             {label}
-            <input
+            <Input
               type="number"
               min={0}
               step="0.1"
@@ -453,48 +451,44 @@ function MeasurementEntry({
               onChange={(e) =>
                 setForm((f) => ({ ...f, value: e.target.value }))
               }
-              className="border rounded p-1"
               required
             />
           </label>
           {units.length > 1 && (
             <label className="flex flex-col gap-1 text-sm w-24">
               Unit
-              <select
+              <Select
                 value={form.unit}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, unit: e.target.value }))
                 }
-                className="border rounded p-1"
               >
                 {units.map((u) => (
                   <option key={u} value={u}>
                     {u}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           )}
           <label className="flex flex-col gap-1 text-sm">
             Date
-            <input
+            <Input
               type="date"
               value={form.measuredDate}
               onChange={(e) =>
                 setForm((f) => ({ ...f, measuredDate: e.target.value }))
               }
-              className="border rounded p-1"
               required
             />
           </label>
         </div>
         <label className="flex flex-col gap-1 text-sm">
           Notes
-          <input
+          <Input
             type="text"
             value={form.notes}
             onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-            className="border rounded p-1"
           />
         </label>
         <div className="flex gap-2 justify-end">
