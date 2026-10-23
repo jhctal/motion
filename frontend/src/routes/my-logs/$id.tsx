@@ -29,6 +29,8 @@ import {
   useWorkoutSession,
 } from "../../api/workouts/use-workout-sessions";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
+import Button from "../../ui/button/button";
+import { exportSessions } from "../../utils/export-logs";
 
 type SetValues = {
   reps: number;
@@ -161,7 +163,38 @@ function ActiveLog() {
     <FormProvider {...methods}>
       <PageWrapper>
         <BackToLogs />
-        <div className="font-semibold text-xl">{session.name}</div>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="font-semibold text-xl">{session.name}</div>
+          <div className="flex items-center gap-2 shrink-0">
+            Download this workout:
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                exportSessions(
+                  [session],
+                  "json",
+                  `${session.name}-${session.createdAt.slice(0, 10)}`,
+                )
+              }
+            >
+              JSON
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                exportSessions(
+                  [session],
+                  "csv",
+                  `${session.name}-${session.createdAt.slice(0, 10)}`,
+                )
+              }
+            >
+              CSV
+            </Button>
+          </div>
+        </div>
         <ProgressBar session={session} totalSets={totalSets} />
 
         <div className="flex flex-col gap-6 mb-4">

@@ -74,6 +74,9 @@ const workoutSessionSchema = new mongoose.Schema(
     // Location and environment
     location: String, // gym name, home, etc.
     tags: [String], // custom tags like 'morning', 'fasted', 'new-pr'
+
+    // Original session id when restored from a backup file, used to skip duplicates
+    importedFrom: String,
   },
   {
     timestamps: true,
@@ -84,6 +87,7 @@ const workoutSessionSchema = new mongoose.Schema(
 workoutSessionSchema.index({ user: 1, status: 1, createdAt: -1 }); // covers filtered + sorted list queries
 workoutSessionSchema.index({ user: 1, createdAt: -1 });             // covers unfiltered list queries
 workoutSessionSchema.index({ user: 1, "exercises.exercise": 1 });
+workoutSessionSchema.index({ user: 1, importedFrom: 1 }, { sparse: true });
 
 // Calculate workout metrics before saving
 workoutSessionSchema.pre("save", function (next) {

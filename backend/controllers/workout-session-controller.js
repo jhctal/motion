@@ -3,6 +3,11 @@ import asyncHandler from "../middleware/async-handler.js";
 import WorkoutSession from "../models/workout-session-model.js";
 import Exercise from "../models/exercise-model.js";
 import PersonalRecord from "../models/personal-record-model.js";
+import mongoose from "mongoose";
+import {
+  CATEGORIES,
+  normaliseImportedSession,
+} from "../utils/normalise-imported-session.js";
 
 // @desc Create a new workout session
 // @route POST /api/workout-sessions
@@ -427,6 +432,119 @@ const getWorkoutStats = asyncHandler(async (req, res) => {
   res.json(result);
 });
 
+const MAX_IMPORT_BATCH = 50;
+
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Find an exercise the user can see by id, then by name; otherwise create it
+// as one of the user's custom exercises. Results are cached per request.
+const resolveImportedExercise = async (ref, user, cache, createdNames) => {
+  const key = ref.id ? `id:${ref.id}` : `name:${ref.name.toLowerCase()}`;
+  if (cache.has(key)) return cache.get(key);
+
+  const visible = { $or: [{ user: null }, { isApproved: true }, { user: user._id }] };
+  let exercise = null;
+
+  if (ref.id && mongoose.isValidObjectId(ref.id)) {
+    exercise = await Exercise.findOne({ _id: ref.id, ...visible });
+  }
+  if (!exercise && ref.name) {
+    exercise = await Exercise.findOne({
+      name: new RegExp(`^${escapeRegex(ref.name)}$`, "i"),
+      ...visible,
+    });
+  }
+  if (!exercise) {
+    if (!ref.name) {
+      throw new Error(`Unknown exercise ${ref.id} and no name to create it from`);
+    }
+    exercise = await Exercise.create({
+      user: user._id,
+      name: ref.name,
+      category: CATEGORIES.includes(ref.category) ? ref.category : undefined,
+      difficulty: "beginner",
+      duration: 0,
+      mainTargetMuscle: ref.mainTargetMuscle || "unknown",
+    });
+    createdNames.push(exercise.name);
+  }
+
+  cache.set(key, exercise._id);
+  if (ref.name) cache.set(`name:${ref.name.toLowerCase()}`, exercise._id);
+  return exercise._id;
+};
+
+// @desc Import workout sessions from a backup file
+// @route POST /api/workout-sessions/import
+// @access Private
+const importWorkoutSessions = asyncHandler(async (req, res) => {
+  const { sessions } = req.body;
+
+  if (!Array.isArray(sessions) || sessions.length === 0) {
+    res.status(400);
+    throw new Error("Expected a non-empty sessions array");
+  }
+  if (sessions.length > MAX_IMPORT_BATCH) {
+    res.status(400);
+    throw new Error(`Import at most ${MAX_IMPORT_BATCH} sessions per request`);
+  }
+
+  const result = { imported: 0, skipped: [], failed: [], createdExercises: [] };
+  const exerciseCache = new Map();
+
+  for (const raw of sessions) {
+    let session;
+    try {
+      session = normaliseImportedSession(raw);
+    } catch (err) {
+      result.failed.push({ name: raw?.name ?? "(unnamed)", reason: err.message });
+      continue;
+    }
+
+    const ids = session.originalIds;
+    if (ids.length > 0) {
+      const objectIds = ids.filter((id) => mongoose.isValidObjectId(id));
+      const existing = await WorkoutSession.exists({
+        user: req.user._id,
+        $or: [{ _id: { $in: objectIds } }, { importedFrom: { $in: ids } }],
+      });
+      if (existing) {
+        result.skipped.push({ name: session.name, reason: "Already exists" });
+        continue;
+      }
+    }
+
+    try {
+      const exercises = [];
+      for (const ex of session.exercises) {
+        exercises.push({
+          exercise: await resolveImportedExercise(
+            ex.ref,
+            req.user,
+            exerciseCache,
+            result.createdExercises,
+          ),
+          sets: ex.sets,
+          notes: ex.notes,
+        });
+      }
+
+      const { originalIds, ...fields } = session;
+      await WorkoutSession.create({
+        ...fields,
+        exercises,
+        user: req.user._id,
+        importedFrom: originalIds[originalIds.length - 1],
+      });
+      result.imported++;
+    } catch (err) {
+      result.failed.push({ name: session.name, reason: err.message });
+    }
+  }
+
+  res.status(201).json(result);
+});
+
 // Helper function to check for personal records
 const checkForPersonalRecords = async (workoutSession) => {
   for (const exerciseSet of workoutSession.exercises) {
@@ -568,4 +686,5 @@ export {
   getWorkoutSessionById,
   deleteWorkoutSession,
   getWorkoutStats,
+  importWorkoutSessions,
 };

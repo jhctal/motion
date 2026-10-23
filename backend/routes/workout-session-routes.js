@@ -12,6 +12,7 @@ import {
   getWorkoutSessionById,
   deleteWorkoutSession,
   getWorkoutStats,
+  importWorkoutSessions,
 } from "../controllers/workout-session-controller.js";
 import { protect } from "../middleware/auth-middleware.js";
 
@@ -21,6 +22,8 @@ router.use(protect);
 router.route("/").get(getUserWorkoutSessions).post(createWorkoutSession);
 
 router.route("/stats").get(getWorkoutStats);
+
+router.route("/import").post(importWorkoutSessions);
 
 router.route("/:id").get(getWorkoutSessionById).delete(deleteWorkoutSession);
 
