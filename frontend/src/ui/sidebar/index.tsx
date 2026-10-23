@@ -1,17 +1,10 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  MoonIcon,
-  PanelLeftCloseIcon,
-  PanelLeftOpenIcon,
-  SunIcon,
-} from "lucide-react";
+import { PanelLeftCloseIcon, PanelLeftOpenIcon } from "lucide-react";
 import cn from "../../utils/cn";
-import { navLinks } from "./links";
-import Button from "../button/button";
-import Switch from "../switch";
 import useTheme from "../../hooks/use-theme";
-import ThemeIconToggle from "../theme-icon-toggle";
+import { NavList, ThemeRow } from "./nav-list";
+import { fadeLabel, rowClass } from "./styles";
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(
@@ -27,102 +20,74 @@ const Sidebar = () => {
     });
   };
 
-  const linkStyles = cn(
-    "bg-white dark:bg-zinc-900 rounded-lg flex items-center justify-center transition-all duration-300",
-    collapsed ? "w-11" : "w-48",
-  );
-
-  const toggleStyles =
-    "p-2 w-full flex gap-2 justify-center items-center rounded-lg";
-
   return (
-    <div
+    <aside
       className={cn(
-        "hidden lg:flex h-dvh bg-white dark:bg-zinc-900 py-2 px-2 flex-col transition-all duration-300 drop-shadow-lg drop-shadow-gray-500 dark:drop-shadow-black/40",
-        collapsed ? "w-16" : "w-52",
+        "hidden lg:flex h-dvh shrink-0 flex-col overflow-hidden border-r border-gray-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 transition-[width] duration-300",
+        collapsed ? "w-16" : "w-56",
       )}
     >
-      <div className="flex items-center justify-center bg-white dark:bg-zinc-900 text-black dark:text-white italic h-12 mb-6 text-2xl select-none transition-all duration-300">
-        {!collapsed ? (
-          <span className="font-semibold italic">Motion</span>
-        ) : (
-          <img
-            src={
-              theme === "dark"
-                ? "/assets/logo-dark.png"
-                : "/assets/logo-light.png"
-            }
-            className="size-12"
-          />
-        )}
-      </div>
-      <div className="h-full flex flex-col gap-2">
-        {navLinks.map((link) => (
-          <div key={link.to} className={linkStyles}>
-            <Button className="w-full p-0" variant="ghost">
-              <Link
-                to={link.to}
-                className="p-2 [&.active]:font-bold w-full flex gap-2 [&.active]:bg-black [&.active]:text-white dark:[&.active]:bg-white dark:[&.active]:text-black justify- rounded-lg"
-              >
-                <link.icon /> {!collapsed && link.label}
-              </Link>
-            </Button>
-          </div>
-        ))}
+      {/* Brand, same height as the top bar so their borders line up.
+          The logo stays put; the name fades in beside it. */}
+      <Link
+        to="/"
+        aria-label="Motion home"
+        className="h-12 shrink-0 flex items-center gap-2.5 px-4 border-b border-gray-200 dark:border-zinc-800 select-none overflow-hidden"
+      >
+        <img
+          src={
+            theme === "dark"
+              ? "/assets/logo-dark.png"
+              : "/assets/logo-light.png"
+          }
+          alt=""
+          className="size-8 shrink-0"
+        />
+        <span
+          className={cn(
+            "text-xl font-semibold italic text-gray-900 dark:text-white",
+            fadeLabel(collapsed),
+          )}
+        >
+          Motion
+        </span>
+      </Link>
+
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4">
+        <NavList collapsed={collapsed} />
       </div>
 
-      <div className="flex flex-col gap-2 pt-2 border-t border-gray-100 dark:border-zinc-800">
-        <div
+      <div className="flex flex-col gap-1 px-3 py-3 border-t border-gray-200 dark:border-zinc-800">
+        <ThemeRow theme={theme} onToggle={toggleTheme} collapsed={collapsed} />
+        <button
+          type="button"
+          onClick={handleToggleCollapse}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : undefined}
           className={cn(
-            "flex items-center rounded-lg p-2 text-sm text-gray-700 dark:text-gray-300",
-            collapsed ? "justify-center" : "justify-between gap-2",
+            rowClass,
+            "text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-zinc-800 dark:hover:text-white transition-colors",
           )}
         >
           {collapsed ? (
-            <ThemeIconToggle theme={theme} onToggle={toggleTheme} />
+            <PanelLeftOpenIcon
+              size={18}
+              aria-hidden="true"
+              className="shrink-0"
+            />
           ) : (
-            <>
-              <span className="flex items-center gap-2">
-                {theme === "dark" ? (
-                  <MoonIcon size={18} />
-                ) : (
-                  <SunIcon size={18} />
-                )}
-                {theme === "dark" ? "Dark mode" : "Light mode"}
-              </span>
-              <Switch
-                checked={theme === "dark"}
-                onCheckedChange={toggleTheme}
-                icon={<SunIcon size={10} className="text-orange-500" />}
-                checkedIcon={
-                  <MoonIcon
-                    size={10}
-                    className="text-zinc-700 dark:text-white"
-                  />
-                }
-                aria-label="Toggle dark mode"
-              />
-            </>
+            <PanelLeftCloseIcon
+              size={18}
+              aria-hidden="true"
+              className="shrink-0"
+            />
           )}
-        </div>
-
-        <Button
-          className="w-full p-0"
-          variant="ghost"
-          onClick={handleToggleCollapse}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          <span className={toggleStyles}>
-            {collapsed ? (
-              <PanelLeftOpenIcon size={18} />
-            ) : (
-              <PanelLeftCloseIcon size={18} />
-            )}
-            {!collapsed && "Collapse"}
+          <span className={fadeLabel(collapsed)} aria-hidden="true">
+            Collapse
           </span>
-        </Button>
+        </button>
       </div>
-    </div>
+    </aside>
   );
 };
 
