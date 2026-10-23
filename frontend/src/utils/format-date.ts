@@ -24,9 +24,12 @@ export function formatTime(date: string | Date) {
   });
 }
 
-// Locale-aware number, e.g. 12,450
-export function formatNumber(n: number) {
-  return n.toLocaleString(getLocale());
+// Locale-aware number, e.g. 12,450 or 20.25
+export function formatNumber(
+  n: number,
+  options: Intl.NumberFormatOptions = { maximumFractionDigits: 2 },
+) {
+  return n.toLocaleString(getLocale(), options);
 }
 
 // e.g. "45 min", "1 h 10 min"

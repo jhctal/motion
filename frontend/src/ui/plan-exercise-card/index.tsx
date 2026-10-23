@@ -1,5 +1,5 @@
 import {
-  useEffect,
+  useCallback,
   useId,
   useRef,
   useState,
@@ -9,7 +9,6 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   GripVerticalIcon,
-  InfoIcon,
   MinusIcon,
   PlusIcon,
   TriangleAlertIcon,
@@ -18,7 +17,15 @@ import type { Exercise } from "../../api/exercises/use-list-exercises";
 import type { LastPerformance } from "../../utils/training-history";
 import { formatRelativeDay } from "../../utils/format-date";
 import cn from "../../utils/cn";
+import useDismiss from "../../hooks/use-dismiss";
 import MuscleTag from "../muscle-tag";
+import {
+  ExerciseInfoPopover,
+  ExerciseInfoToggle,
+  ExerciseMeta,
+  InfoButton,
+  LastPerformanceLine,
+} from "../exercise-info";
 
 const MIN_SETS = 1;
 const MAX_SETS = 10;
@@ -42,31 +49,8 @@ type PlanExerciseCardProps = {
   onRemove: () => void;
 };
 
-function formatLastSets(perf: LastPerformance) {
-  return perf.sets
-    .map((s) =>
-      s.durationInSeconds > 0 && !s.reps
-        ? `${s.durationInSeconds}s`
-        : s.weight > 0
-          ? `${s.weight}×${s.reps}`
-          : `${s.reps} reps`,
-    )
-    .join(" · ");
-}
-
 const iconButton =
   "grid place-items-center rounded text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors";
-
-function LastLine({ perf }: { perf?: LastPerformance }) {
-  if (!perf) return <>No recent history</>;
-  return (
-    <>
-      <span className="font-medium text-gray-700 dark:text-gray-200">Last</span>{" "}
-      <span className="tabular-nums">{formatLastSets(perf)}</span> ·{" "}
-      {formatRelativeDay(perf.date)}
-    </>
-  );
-}
 
 function SetStepper({
   name,
@@ -127,41 +111,6 @@ function SetStepper({
   );
 }
 
-// Equipment, secondary muscles and instructions
-function ExerciseInfo({ details }: { details?: Exercise }) {
-  return (
-    <>
-      {details?.equipmentNeeded && details.equipmentNeeded.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1">
-          <span className="mr-1 font-medium text-gray-700 dark:text-gray-200">
-            Equipment
-          </span>
-          {details.equipmentNeeded.map((item) => (
-            <span
-              key={item}
-              className="px-1.5 py-0.5 rounded bg-gray-200 dark:bg-zinc-800 capitalize"
-            >
-              {item}
-            </span>
-          ))}
-        </div>
-      )}
-      {details?.muscleGroups && details.muscleGroups.length > 0 && (
-        <p className="capitalize">
-          <span className="font-medium text-gray-700 dark:text-gray-200 normal-case">
-            Also works{" "}
-          </span>
-          {details.muscleGroups.join(", ")}
-        </p>
-      )}
-      {details?.description && <p>{details.description}</p>}
-      <p className="whitespace-pre-line leading-relaxed">
-        {details?.instructions || "No instructions for this exercise yet."}
-      </p>
-    </>
-  );
-}
-
 const PlanExerciseCard = ({
   index,
   total,
@@ -188,21 +137,8 @@ const PlanExerciseCard = ({
     `${mainTargetMuscle} trained ${formatRelativeDay(recoveringSince)}`;
 
   // Phone info popover closes on outside tap or Escape
-  useEffect(() => {
-    if (!infoOpen) return;
-    function handlePointer(e: PointerEvent) {
-      if (!cardRef.current?.contains(e.target as Node)) setInfoOpen(false);
-    }
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setInfoOpen(false);
-    }
-    document.addEventListener("pointerdown", handlePointer);
-    document.addEventListener("keydown", handleKey);
-    return () => {
-      document.removeEventListener("pointerdown", handlePointer);
-      document.removeEventListener("keydown", handleKey);
-    };
-  }, [infoOpen]);
+  const closeInfo = useCallback(() => setInfoOpen(false), []);
+  useDismiss(cardRef, infoOpen, closeInfo);
 
   return (
     <li
@@ -237,20 +173,12 @@ const PlanExerciseCard = ({
         )}
 
         {/* Phones only */}
-        <button
-          type="button"
-          onClick={() => setInfoOpen((o) => !o)}
-          aria-expanded={infoOpen}
-          aria-controls={popoverId}
-          aria-label={`About ${name}`}
-          className={cn(
-            iconButton,
-            "md:hidden size-7 shrink-0",
-            infoOpen && "text-orange-500",
-          )}
-        >
-          <InfoIcon size={16} />
-        </button>
+        <InfoButton
+          name={name}
+          open={infoOpen}
+          onToggle={() => setInfoOpen((o) => !o)}
+          controls={popoverId}
+        />
         {mainTargetMuscle && (
           <MuscleTag
             muscle={mainTargetMuscle}
@@ -299,69 +227,34 @@ const PlanExerciseCard = ({
 
       {/* Phone info popover */}
       {infoOpen && (
-        <div
+        <ExerciseInfoPopover
           id={popoverId}
-          role="dialog"
-          aria-label={`About ${name}`}
-          className="md:hidden absolute z-30 left-0 right-0 top-full mt-1 flex flex-col gap-3 max-h-72 overflow-y-auto p-3 rounded-lg border border-gray-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900 text-xs text-gray-600 dark:text-gray-300"
-        >
-          <p className="capitalize">
-            {category}
-            {details?.difficulty && ` · ${details.difficulty}`}
-            {details?.isCompound && " · Compound"}
-          </p>
-          <p>
-            <LastLine perf={lastPerformance} />
-          </p>
-          <ExerciseInfo details={details} />
-        </div>
+          name={name}
+          category={category}
+          details={details}
+          lastPerformance={lastPerformance}
+        />
       )}
 
       {/* Tablet and up: details, last time and sets */}
       <div className="hidden md:flex flex-wrap items-center gap-x-2 gap-y-1 pl-13 pr-3 pt-1 text-xs text-gray-500 dark:text-gray-400 capitalize">
         {mainTargetMuscle && <MuscleTag muscle={mainTargetMuscle} />}
-        {category && <span>{category}</span>}
-        {details?.difficulty && (
-          <>
-            <span aria-hidden="true">·</span>
-            <span>{details.difficulty}</span>
-          </>
-        )}
-        {details?.isCompound && (
-          <>
-            <span aria-hidden="true">·</span>
-            <span>Compound</span>
-          </>
-        )}
+        <span>
+          <ExerciseMeta category={category} details={details} />
+        </span>
       </div>
       <div className="hidden md:flex items-center justify-between gap-3 pl-13 pr-2 py-2">
         <p className="min-w-0 text-xs text-gray-500 dark:text-gray-400 truncate">
-          <LastLine perf={lastPerformance} />
+          <LastPerformanceLine perf={lastPerformance} />
         </p>
         <SetStepper name={name} sets={sets} onSetsChange={onSetsChange} />
       </div>
-      <button
-        type="button"
-        onClick={() => setExpanded((e) => !e)}
-        aria-expanded={expanded}
-        aria-controls={expandedId}
-        className="hidden md:flex items-center justify-center gap-1 py-1.5 border-t border-gray-200 dark:border-zinc-800 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-      >
-        {expanded ? "Hide details" : "How to & equipment"}
-        <ChevronDownIcon
-          size={14}
-          aria-hidden="true"
-          className={cn("transition-transform", expanded && "rotate-180")}
-        />
-      </button>
-      {expanded && (
-        <div
-          id={expandedId}
-          className="hidden md:flex flex-col gap-3 px-3 pb-3 text-xs text-gray-600 dark:text-gray-300"
-        >
-          <ExerciseInfo details={details} />
-        </div>
-      )}
+      <ExerciseInfoToggle
+        id={expandedId}
+        expanded={expanded}
+        onToggle={() => setExpanded((e) => !e)}
+        details={details}
+      />
     </li>
   );
 };
