@@ -32,6 +32,23 @@ export function formatNumber(
   return n.toLocaleString(getLocale(), options);
 }
 
+// Thousands separator for the user's locale, e.g. "," or "."
+export function groupSeparator() {
+  return (
+    new Intl.NumberFormat(getLocale())
+      .formatToParts(1000)
+      .find((part) => part.type === "group")?.value ?? ","
+  );
+}
+
+// Short form for big numbers, e.g. 1,284 / 12.9K / 4.2M
+export function formatCompact(n: number) {
+  return n.toLocaleString(getLocale(), {
+    notation: n >= 10_000 ? "compact" : "standard",
+    maximumFractionDigits: 1,
+  });
+}
+
 // e.g. "45 min", "1 h 10 min"
 export function formatDuration(minutes: number) {
   if (minutes < 60) return `${minutes} min`;

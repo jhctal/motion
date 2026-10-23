@@ -2,7 +2,45 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-.stat {
-  counter-reset: n var (--num);
-  animation: count 2s;
+/* Count-up numbers in pure CSS. Set --to on the element; registering --num
+   as an integer lets the browser interpolate it, and counter() prints it.
+   Counters only print whole numbers without separators, so CountUp splits
+   big numbers into 3-digit groups and pairs it with a screen-reader copy. */
+@property --num {
+  syntax: "<integer>";
+  initial-value: 0;
+  inherits: false;
+}
+
+.count-up {
+  --num: var(--to);
+  counter-reset: num var(--num);
+  animation: count-up 1s ease-out;
+}
+
+.count-up::after {
+  content: counter(num);
+}
+
+/* Later digit groups of a large number keep their leading zeros: 12,045 */
+@counter-style pad3 {
+  system: extends decimal;
+  pad: 3 "0";
+}
+
+.count-up-pad::after {
+  content: counter(num, pad3);
+}
+
+/* only "from": the end value is the element's own --num */
+@keyframes count-up {
+  from {
+    --num: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .count-up {
+    animation: none;
+  }
 }
