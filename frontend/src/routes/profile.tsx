@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import PageWrapper from "../ui/page-wrapper/page-wrapper";
+import Input from "../ui/form/input";
 import useUserProfile from "../api/user/use-user-profile";
 import useUpdateUserProfile from "../api/user/use-update-user-profile";
 import useUpdateUserPreferences from "../api/user/use-update-user-preferences";
+import Select from "../ui/form/select";
 
 export const Route = createFileRoute("/profile")({
   component: RouteComponent,
@@ -39,20 +41,22 @@ function RouteComponent() {
     <PageWrapper pageName="Your Profile">
       <div className="flex flex-col gap-2">
         <p>Hello {data?.first_name}!</p>
-        <input
+        <Input
+          label="Height"
           value={height}
           onChange={(e) => setHeight(e.target.value)}
           placeholder="Height"
         />
-        <input
+        <Input
+          label="Weight"
           value={weight}
           onChange={(e) => setWeight(e.target.value)}
           placeholder="Weight"
         />
-        <select value={units} onChange={(e) => setUnits(e.target.value)}>
+        <Select value={units} onChange={(e) => setUnits(e.target.value)}>
           <option value="kg">kg</option>
           <option value="lbs">lbs</option>
-        </select>
+        </Select>
         <button onClick={handleSave} disabled={isPending}>
           {isPending ? "Saving..." : "Save"}
         </button>

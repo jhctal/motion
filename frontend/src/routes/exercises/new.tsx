@@ -2,6 +2,10 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useCreateExercise } from "../../api/exercises/use-create-exercise";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
+import Input from "../../ui/form/input";
+import Select from "../../ui/form/select";
+import Textarea from "../../ui/form/textarea";
+import Button from "../../ui/button/button";
 
 export const Route = createFileRoute("/exercises/new")({
   beforeLoad: async ({ location }) => {
@@ -16,7 +20,13 @@ export const Route = createFileRoute("/exercises/new")({
   component: NewExercise,
 });
 
-const CATEGORIES = ["strength", "cardio", "flexibility", "balance", "sports"] as const;
+const CATEGORIES = [
+  "strength",
+  "cardio",
+  "flexibility",
+  "balance",
+  "sports",
+] as const;
 const DIFFICULTIES = ["beginner", "intermediate", "advanced"] as const;
 
 function NewExercise() {
@@ -77,67 +87,74 @@ function NewExercise() {
 
   return (
     <PageWrapper pageName="New exercise">
-      <form onSubmit={handleSubmit} className="max-w-2xl flex flex-col gap-5 mt-2">
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-2xl flex flex-col gap-5 mt-2"
+      >
         <div>
           <label className="block text-sm font-medium mb-1">Name *</label>
-          <input
+          <Input
             required
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Barbell back squat"
-            className="w-full p-2 border rounded bg-transparent"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Category</label>
-            <select
+            <Select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full p-2 border rounded bg-transparent capitalize"
+              className="capitalize"
             >
               {CATEGORIES.map((c) => (
                 <option key={c} value={c} className="capitalize">
                   {c}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Difficulty *</label>
-            <select
+            <label className="block text-sm font-medium mb-1">
+              Difficulty *
+            </label>
+            <Select
               value={difficulty}
               onChange={(e) => setDifficulty(e.target.value)}
-              className="w-full p-2 border rounded bg-transparent capitalize"
+              className="capitalize"
             >
               {DIFFICULTIES.map((d) => (
                 <option key={d} value={d} className="capitalize">
                   {d}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Main target muscle *</label>
-          <input
+          <label className="block text-sm font-medium mb-1">
+            Main target muscle *
+          </label>
+          <Input
             required
             type="text"
             value={mainTargetMuscle}
             onChange={(e) => setMainTargetMuscle(e.target.value)}
             placeholder="e.g. Quadriceps"
-            className="w-full p-2 border rounded bg-transparent"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Muscle groups</label>
+          <label className="block text-sm font-medium mb-1">
+            Muscle groups
+          </label>
           <div className="flex gap-2">
-            <input
+            <Input
               type="text"
               value={muscleGroupInput}
               onChange={(e) => setMuscleGroupInput(e.target.value)}
@@ -148,7 +165,7 @@ function NewExercise() {
                 }
               }}
               placeholder="e.g. Hamstrings"
-              className="flex-1 p-2 border rounded bg-transparent"
+              className="flex-1"
             />
             <button
               type="button"
@@ -181,29 +198,29 @@ function NewExercise() {
 
         <div>
           <label className="block text-sm font-medium mb-1">Description</label>
-          <textarea
+          <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            className="w-full p-2 border rounded bg-transparent resize-none"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">Instructions</label>
-          <textarea
+          <Textarea
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
             rows={3}
             placeholder="Step-by-step instructions..."
-            className="w-full p-2 border rounded bg-transparent resize-none"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Equipment needed</label>
+          <label className="block text-sm font-medium mb-1">
+            Equipment needed
+          </label>
           <div className="flex gap-2">
-            <input
+            <Input
               type="text"
               value={equipmentInput}
               onChange={(e) => setEquipmentInput(e.target.value)}
@@ -214,7 +231,7 @@ function NewExercise() {
                 }
               }}
               placeholder="e.g. Barbell"
-              className="flex-1 p-2 border rounded bg-transparent"
+              className="flex-1"
             />
             <button
               type="button"
@@ -255,13 +272,23 @@ function NewExercise() {
           <span className="text-sm">Compound movement</span>
         </label>
 
-        <button
-          type="submit"
-          disabled={createExercise.isPending}
-          className="w-full py-3 bg-orange-500 text-black font-semibold rounded hover:bg-orange-400 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {createExercise.isPending ? "Creating..." : "Create exercise"}
-        </button>
+        <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-zinc-700 md:mt-2">
+          <Button
+            variant="outline"
+            className="flex-1 h-auto py-3"
+            disabled={createExercise.isPending}
+            onClick={() => navigate({ to: "/exercises" })}
+          >
+            Cancel
+          </Button>
+          <button
+            type="submit"
+            disabled={createExercise.isPending}
+            className="flex-1 py-3 bg-orange-500 text-black font-semibold rounded-lg hover:bg-orange-400 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {createExercise.isPending ? "Creating..." : "Create exercise"}
+          </button>
+        </div>
       </form>
     </PageWrapper>
   );

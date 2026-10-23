@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useWorkoutSessions } from "../../api/workouts/use-workout-sessions";
+import { formatSessionTitle } from "../../utils/format-date";
 
 function formatDuration(minutes: number) {
   if (minutes < 60) return `${minutes}m`;
@@ -34,7 +35,7 @@ export function LastWorkoutWidget() {
         <>
           <div>
             <p className="font-semibold capitalize text-lg leading-tight">
-              {session.name}
+              {formatSessionTitle(session)}
             </p>
             <p className="text-xs text-gray-400 dark:text-gray-300 mt-0.5">
               {timeAgo(session.completedAt)}

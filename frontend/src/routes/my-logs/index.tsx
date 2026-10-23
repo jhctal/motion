@@ -11,6 +11,7 @@ import useListLogs, {
 import { useDeleteLog } from "../../api/logged-workouts/use-delete-log";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
 import cn from "../../utils/cn";
+import { formatSessionTitle } from "../../utils/format-date";
 import Button from "../../ui/button/button";
 import ExportLogsModal from "../../ui/export-logs-modal";
 import useImportLogs from "../../api/logged-workouts/use-import-logs";
@@ -43,7 +44,10 @@ function RouteComponent() {
           {data?.workoutSessions.length ?? 0} sessions
         </span>
         <div className="flex flex-wrap items-center gap-2">
-          <ImportButton onFileRead={setPendingImport} onError={setImportError} />
+          <ImportButton
+            onFileRead={setPendingImport}
+            onError={setImportError}
+          />
           <Button
             variant="outline"
             size="sm"
@@ -108,9 +112,7 @@ function ImportButton({
       onError(null);
       onFileRead(sessions);
     } catch (err) {
-      onError(
-        err instanceof Error ? err.message : "Couldn't read that file",
-      );
+      onError(err instanceof Error ? err.message : "Couldn't read that file");
     }
   }
 
@@ -202,22 +204,18 @@ function ImportPanel({
               ))}
             </ul>
           )}
-          <Button variant="outline" size="sm" className="self-start" onClick={onClose}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="self-start"
+            onClick={onClose}
+          >
             Done
           </Button>
         </>
       )}
     </div>
   );
-}
-
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
 }
 
 function StatusBadge({
@@ -284,7 +282,7 @@ function SessionCard({
       >
         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mb-0.5">
           <span className="font-medium text-lg md:text-sm capitalize flex items-center gap-1">
-            {session.name}
+            {formatSessionTitle(session)}
             <MiniStatusBadge
               className="block md:hidden"
               status={session.status}
@@ -293,7 +291,6 @@ function SessionCard({
           <StatusBadge className="hidden md:block" status={session.status} />
         </div>
         <div className="text-xs text-gray-400 dark:text-gray-300 flex gap-3">
-          <span>{formatDate(session.createdAt)}</span>
           {session.exercises.length > 0 && (
             <span className="hidden md:block">
               {session.exercises.length} exercises

@@ -8,6 +8,8 @@ import {
   SleepLog,
 } from "../../api/sleep/use-sleep-logs";
 import Button from "../../ui/button/button";
+import Input from "../../ui/form/input";
+import Select from "../../ui/form/select";
 
 export const Route = createFileRoute("/sleep/")({
   component: RouteComponent,
@@ -71,43 +73,40 @@ function RouteComponent() {
           >
             <label className="flex flex-col gap-1 text-sm">
               Date
-              <input
+              <Input
                 type="date"
                 value={form.date}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, date: e.target.value }))
                 }
-                className="border rounded p-1"
                 required
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
               Bed time
-              <input
+              <Input
                 type="time"
                 value={form.bedTime}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, bedTime: e.target.value }))
                 }
-                className="border rounded p-1"
                 required
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
               Wake time
-              <input
+              <Input
                 type="time"
                 value={form.wakeTime}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, wakeTime: e.target.value }))
                 }
-                className="border rounded p-1"
                 required
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
               Quality
-              <select
+              <Select
                 value={form.quality}
                 onChange={(e) =>
                   setForm((f) => ({
@@ -115,24 +114,22 @@ function RouteComponent() {
                     quality: e.target.value as SleepLog["quality"],
                   }))
                 }
-                className="border rounded p-1"
               >
                 {QUALITY_OPTIONS.map((q) => (
                   <option key={q} value={q}>
                     {q.charAt(0).toUpperCase() + q.slice(1)}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
             <label className="flex flex-col gap-1 text-sm">
               Notes (optional)
-              <input
+              <Input
                 type="text"
                 value={form.notes}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, notes: e.target.value }))
                 }
-                className="border rounded p-1"
                 placeholder="e.g. restless, vivid dreams"
               />
             </label>

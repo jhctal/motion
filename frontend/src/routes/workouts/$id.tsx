@@ -14,6 +14,10 @@ import useFindWorkout from "../../api/workouts/use-find-workout";
 import { useRemoveExerciseFromWorkout } from "../../api/workouts/use-remove-exercise-from-workout";
 import { useUpdateWorkout } from "../../api/workouts/use-update-workout";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
+import Input from "../../ui/form/input";
+import Select from "../../ui/form/select";
+import Textarea from "../../ui/form/textarea";
+import FilterableExerciseSelect from "../../ui/filterable-exercise-select";
 
 export const Route = createFileRoute("/workouts/$id")({
   beforeLoad: async ({ location }) => {
@@ -127,11 +131,10 @@ function WorkoutView() {
           <div className="flex flex-col gap-4 max-w-2xl">
             <div>
               <label className="block text-sm font-medium mb-1">Name</label>
-              <input
+              <Input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full p-2 border rounded bg-transparent"
               />
             </div>
 
@@ -139,11 +142,10 @@ function WorkoutView() {
               <label className="block text-sm font-medium mb-1">
                 Description
               </label>
-              <textarea
+              <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
-                className="w-full p-2 border rounded bg-transparent resize-none"
               />
             </div>
 
@@ -152,28 +154,27 @@ function WorkoutView() {
                 <label className="block text-sm font-medium mb-1">
                   Difficulty
                 </label>
-                <select
+                <Select
                   value={difficultyLevel}
                   onChange={(e) => setDifficultyLevel(e.target.value)}
-                  className="w-full p-2 border rounded bg-transparent capitalize"
+                  className="capitalize"
                 >
                   {DIFFICULTIES.map((d) => (
                     <option key={d} value={d} className="capitalize">
                       {d}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Duration (mins)
                 </label>
-                <input
+                <Input
                   type="number"
                   min={1}
                   value={estimatedDurationMinutes}
                   onChange={(e) => setEstimatedDurationMinutes(e.target.value)}
-                  className="w-full p-2 border rounded bg-transparent"
                 />
               </div>
             </div>
@@ -208,23 +209,16 @@ function WorkoutView() {
                   </div>
                 ))}
               </div>
-              <select
-                value=""
-                onChange={(e) => handleAddExercise(e.target.value)}
+              <FilterableExerciseSelect
+                exercises={availableToAdd ?? []}
+                onSelect={handleAddExercise}
                 disabled={addExercise.isPending || !availableToAdd?.length}
-                className="w-full p-2 border rounded bg-transparent capitalize"
-              >
-                <option value="">
-                  {!availableToAdd?.length
+                placeholder={
+                  !availableToAdd?.length
                     ? "— no more exercises —"
-                    : "— add an exercise —"}
-                </option>
-                {availableToAdd?.map((ex) => (
-                  <option key={ex._id} value={ex._id} className="capitalize">
-                    {ex.name} · {ex.mainTargetMuscle}
-                  </option>
-                ))}
-              </select>
+                    : "Search exercises to add…"
+                }
+              />
             </div>
 
             <div className="flex gap-2">

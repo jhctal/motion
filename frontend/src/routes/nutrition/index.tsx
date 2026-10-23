@@ -8,6 +8,8 @@ import {
   NutritionLog,
 } from "../../api/nutrition/use-nutrition-logs";
 import Button from "../../ui/button/button";
+import Input from "../../ui/form/input";
+import Select from "../../ui/form/select";
 
 export const Route = createFileRoute("/nutrition/")({
   component: RouteComponent,
@@ -90,36 +92,33 @@ export function RouteComponent() {
           >
             <label className="flex flex-col gap-1 text-sm">
               Date
-              <input
+              <Input
                 type="date"
                 value={form.date}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, date: e.target.value }))
                 }
-                className="border rounded p-1"
                 required
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
               Label (optional)
-              <input
+              <Input
                 type="text"
                 value={form.label}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, label: e.target.value }))
                 }
-                className="border rounded p-1"
                 placeholder="e.g. Breakfast, Lunch, Snack"
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
               Category (optional)
-              <select
+              <Select
                 value={form.category}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, category: e.target.value }))
                 }
-                className="border rounded p-1"
               >
                 <option value="">— none —</option>
                 <option value="meat">Meat</option>
@@ -134,18 +133,17 @@ export function RouteComponent() {
                 <option value="snacks">Snacks</option>
                 <option value="drinks">Drinks</option>
                 <option value="other">Other</option>
-              </select>
+              </Select>
             </label>
             <label className="flex flex-col gap-1 text-sm">
               Calories
-              <input
+              <Input
                 type="number"
                 min={0}
                 value={form.calories}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, calories: e.target.value }))
                 }
-                className="border rounded p-1"
                 placeholder="e.g. 600"
                 required
               />
@@ -153,53 +151,49 @@ export function RouteComponent() {
             <div className="grid grid-cols-3 gap-2">
               <label className="flex flex-col gap-1 text-sm">
                 Protein (g)
-                <input
+                <Input
                   type="number"
                   min={0}
                   value={form.protein}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, protein: e.target.value }))
                   }
-                  className="border rounded p-1"
                   placeholder="0"
                 />
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 Carbs (g)
-                <input
+                <Input
                   type="number"
                   min={0}
                   value={form.carbs}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, carbs: e.target.value }))
                   }
-                  className="border rounded p-1"
                   placeholder="0"
                 />
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 Fat (g)
-                <input
+                <Input
                   type="number"
                   min={0}
                   value={form.fat}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, fat: e.target.value }))
                   }
-                  className="border rounded p-1"
                   placeholder="0"
                 />
               </label>
             </div>
             <label className="flex flex-col gap-1 text-sm">
               Notes (optional)
-              <input
+              <Input
                 type="text"
                 value={form.notes}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, notes: e.target.value }))
                 }
-                className="border rounded p-1"
                 placeholder="e.g. cheat day, high protein day"
               />
             </label>

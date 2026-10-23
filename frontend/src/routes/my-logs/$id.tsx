@@ -30,7 +30,9 @@ import {
 } from "../../api/workouts/use-workout-sessions";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
 import Button from "../../ui/button/button";
+import { formatSessionTitle } from "../../utils/format-date";
 import { exportSessions } from "../../utils/export-logs";
+import Textarea from "../../ui/form/textarea";
 
 type SetValues = {
   reps: number;
@@ -164,7 +166,9 @@ function ActiveLog() {
       <PageWrapper>
         <BackToLogs />
         <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="font-semibold text-xl">{session.name}</div>
+          <div className="font-semibold text-xl capitalize">
+            {formatSessionTitle(session)}
+          </div>
           <div className="flex items-center gap-2 shrink-0">
             Download this workout:
             <Button
@@ -368,10 +372,9 @@ function FinishModal({
           <label className="block text-sm text-gray-400 dark:text-gray-300 mb-2">
             Notes
           </label>
-          <textarea
+          <Textarea
             rows={3}
             placeholder="Any notes about this session..."
-            className="w-full p-3 border rounded-lg bg-transparent text-sm resize-none"
             {...register("notes")}
           />
         </div>

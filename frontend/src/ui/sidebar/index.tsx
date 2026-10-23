@@ -11,6 +11,7 @@ import { navLinks } from "./links";
 import Button from "../button/button";
 import Switch from "../switch";
 import useTheme from "../../hooks/use-theme";
+import ThemeIconToggle from "../theme-icon-toggle";
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(
@@ -78,18 +79,7 @@ const Sidebar = () => {
           )}
         >
           {collapsed ? (
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label="Toggle dark mode"
-              className="cursor-pointer hover:text-orange-500 transition-colors"
-            >
-              {theme === "dark" ? (
-                <MoonIcon size={18} />
-              ) : (
-                <SunIcon size={18} />
-              )}
-            </button>
+            <ThemeIconToggle theme={theme} onToggle={toggleTheme} />
           ) : (
             <>
               <span className="flex items-center gap-2">
