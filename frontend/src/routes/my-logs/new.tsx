@@ -6,7 +6,7 @@ import {
   useCreateWorkoutSession,
   useStartWorkoutSession,
 } from "../../api/workouts/use-workout-sessions";
-import ExerciseOptGroups from "../../ui/exercise-opt-groups";
+import FilterableExerciseSelect from "../../ui/filterable-exercise-select";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
 
 export const Route = createFileRoute("/my-logs/new")({
@@ -150,21 +150,16 @@ function NewLog() {
         {/* Exercise picker — all exercises */}
         <div className="flex flex-col gap-3">
           <label className="block text-sm font-medium">Exercises</label>
-          <select
-            value=""
-            onChange={(e) => handleAddExercise(e.target.value)}
-            className="w-full p-2 border rounded bg-transparent capitalize"
+          <FilterableExerciseSelect
+            exercises={availableExercises ?? []}
+            onSelect={handleAddExercise}
             disabled={!availableExercises || availableExercises.length === 0}
-          >
-            <option value="">
-              {!availableExercises || availableExercises.length === 0
+            placeholder={
+              !availableExercises || availableExercises.length === 0
                 ? "— all exercises added —"
-                : "— add an exercise —"}
-            </option>
-            {availableExercises && (
-              <ExerciseOptGroups exercises={availableExercises} />
-            )}
-          </select>
+                : "Search exercises to add…"
+            }
+          />
 
           {selectedExercises.length > 0 && (
             <div className="flex flex-col gap-2">

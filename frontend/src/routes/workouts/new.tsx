@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useListExercises } from "../../api/exercises/use-list-exercises";
 import { useAddExerciseToWorkout } from "../../api/workouts/use-add-exercise-to-workout";
 import { useCreateWorkout } from "../../api/workouts/use-create-workout";
-import ExerciseOptGroups from "../../ui/exercise-opt-groups";
+import FilterableExerciseSelect from "../../ui/filterable-exercise-select";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
 
 export const Route = createFileRoute("/workouts/new")({
@@ -151,21 +151,16 @@ function NewWorkout() {
 
         <div>
           <label className="block text-sm font-medium mb-2">Exercises</label>
-          <select
-            value=""
-            onChange={(e) => handleAddExercise(e.target.value)}
-            className="w-full p-2 border rounded bg-transparent capitalize"
+          <FilterableExerciseSelect
+            exercises={availableExercises ?? []}
+            onSelect={handleAddExercise}
             disabled={!availableExercises || availableExercises.length === 0}
-          >
-            <option value="">
-              {!availableExercises || availableExercises.length === 0
+            placeholder={
+              !availableExercises || availableExercises.length === 0
                 ? "— no more exercises —"
-                : "— add an exercise —"}
-            </option>
-            {availableExercises && (
-              <ExerciseOptGroups exercises={availableExercises} />
-            )}
-          </select>
+                : "Search exercises to add…"
+            }
+          />
 
           {selectedExercises.length > 0 && (
             <div className="flex flex-col gap-2 mt-3">
