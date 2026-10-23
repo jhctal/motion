@@ -1,6 +1,10 @@
 import {
   Fragment,
+  useEffect,
   useId,
+  useLayoutEffect,
+  useRef,
+  useState,
   type ComponentType,
   type CSSProperties,
   type ReactNode,
@@ -60,19 +64,62 @@ type SegmentedControlProps<T extends string> = {
   onChange: (value: T) => void;
 };
 
-// Small pill switcher for time periods
+// Small pill switcher for time periods. One highlight sits behind the
+// buttons and slides to whichever is selected.
 export function SegmentedControl<T extends string>({
   label,
   options,
   value,
   onChange,
 }: SegmentedControlProps<T>) {
+  const groupRef = useRef<HTMLDivElement>(null);
+  const [pill, setPill] = useState<{ left: number; width: number } | null>(
+    null,
+  );
+  // no slide on first paint, only when the selection changes afterwards
+  const [animate, setAnimate] = useState(false);
+
+  useLayoutEffect(() => {
+    const group = groupRef.current;
+    if (!group) return;
+    const measure = () => {
+      const active = group.querySelector<HTMLElement>('[aria-checked="true"]');
+      if (active) {
+        setPill({ left: active.offsetLeft, width: active.offsetWidth });
+      }
+    };
+    measure();
+    // labels can change width when fonts load or the layout resizes
+    const observer = new ResizeObserver(measure);
+    observer.observe(group);
+    return () => observer.disconnect();
+  }, [value]);
+
+  useEffect(() => {
+    if (pill && !animate) {
+      const frame = requestAnimationFrame(() => setAnimate(true));
+      return () => cancelAnimationFrame(frame);
+    }
+  }, [pill, animate]);
+
   return (
     <div
+      ref={groupRef}
       role="radiogroup"
       aria-label={label}
-      className="flex shrink-0 rounded-lg bg-gray-100 p-0.5 dark:bg-zinc-800"
+      className="relative flex shrink-0 rounded-lg bg-gray-100 p-0.5 dark:bg-zinc-800"
     >
+      {pill && (
+        <span
+          aria-hidden="true"
+          className={cn(
+            "absolute inset-y-0.5 left-0 rounded-md bg-white shadow-sm dark:bg-zinc-700",
+            animate &&
+              "transition-[translate,width] duration-200 ease-out motion-reduce:transition-none",
+          )}
+          style={{ width: pill.width, translate: `${pill.left}px 0` }}
+        />
+      )}
       {options.map((o) => (
         <button
           key={o.value}
@@ -81,9 +128,9 @@ export function SegmentedControl<T extends string>({
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
           className={cn(
-            "px-2 py-0.5 rounded-md text-xs font-medium transition-colors",
+            "relative px-2 py-0.5 rounded-md text-xs font-medium transition-colors duration-200",
             value === o.value
-              ? "bg-white text-gray-900 shadow-sm dark:bg-zinc-700 dark:text-white"
+              ? "text-gray-900 dark:text-white"
               : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white",
           )}
         >
