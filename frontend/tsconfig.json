@@ -4,15 +4,7 @@
     "lib": ["es2023", "dom"],
     "module": "esnext",
     "strict": true,
-    "noUnusedLocals": false,
-    "paths": {
-      "#api/*": ["./src/api/*"],
-      "#assets/*": ["./src/assets/*"],
-      "#hooks/*": ["./src/hooks/*"],
-      "#types/*": ["./src/types/*"],
-      "#utils/*": ["./src/utils/*"],
-      "#ui/*": ["./src/ui/*"]
-    }
+    "noUnusedLocals": false
   },
   "files": [],
   "references": [
