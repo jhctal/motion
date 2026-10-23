@@ -14,3 +14,7 @@ export const fieldClassName = cn(
 );
 
 export const fieldLabelClassName = "flex flex-col gap-1.5 text-sm font-medium";
+
+// Added to a field with a validation error
+export const fieldErrorClassName =
+  "border-red-500 hover:border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500";
