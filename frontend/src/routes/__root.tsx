@@ -24,7 +24,7 @@ function RootLayout() {
       <hr />
       <div className="h-dvh w-full">
         <TopBar onMenuOpen={() => setMenuOpen(true)} />
-        <div className="h-[calc(100dvh-48px)] bg-white dark:bg-zinc-800 dark:text-white py-6 px-4 overflow-auto">
+        <div className="h-[calc(100dvh-48px)] bg-white dark:bg-zinc-800 dark:text-white pt-6 pb-16 md:pb-6 px-4 overflow-auto">
           <Outlet />
         </div>
       </div>

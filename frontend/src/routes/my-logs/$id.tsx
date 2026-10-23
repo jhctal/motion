@@ -1,5 +1,6 @@
 import {
   createFileRoute,
+  Link,
   redirect,
   useNavigate,
   useParams,
@@ -51,6 +52,17 @@ export const Route = createFileRoute("/my-logs/$id")({
   },
   component: ActiveLog,
 });
+
+function BackToLogs() {
+  return (
+    <Link
+      to="/my-logs"
+      className="inline-block mb-2 text-sm text-gray-500 dark:text-gray-300 hover:text-orange-500"
+    >
+      ← Back to logs
+    </Link>
+  );
+}
 
 function ActiveLog() {
   const { id } = useParams({ strict: false });
@@ -115,7 +127,9 @@ function ActiveLog() {
 
   if (error) {
     return (
-      <PageWrapper pageName="Error">
+      <PageWrapper>
+        <BackToLogs />
+        <div className="font-semibold text-xl">Error</div>
         <p className="text-red-400">
           {(error as Error).message ?? "Failed to load session"}
         </p>
@@ -145,7 +159,9 @@ function ActiveLog() {
 
   return (
     <FormProvider {...methods}>
-      <PageWrapper pageName={session.name}>
+      <PageWrapper>
+        <BackToLogs />
+        <div className="font-semibold text-xl">{session.name}</div>
         <ProgressBar session={session} totalSets={totalSets} />
 
         <div className="flex flex-col gap-6 mb-4">
