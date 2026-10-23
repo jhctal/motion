@@ -31,7 +31,7 @@ const Modal = ({ open, onClose, children, className }: ModalProps) => {
         role="dialog"
         aria-modal="true"
         className={cn(
-          "w-full max-w-sm rounded-lg bg-white dark:bg-zinc-900 p-6 flex flex-col gap-4 shadow-lg",
+          "w-full max-w-sm lg:max-w-md rounded-lg bg-white dark:bg-zinc-900 p-6 flex flex-col gap-4 shadow-lg",
           className,
         )}
       >

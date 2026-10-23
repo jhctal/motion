@@ -12,8 +12,7 @@ import { useDeleteLog } from "../../api/logged-workouts/use-delete-log";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
 import cn from "../../utils/cn";
 import Button from "../../ui/button/button";
-import fetchAllLogs from "../../api/logged-workouts/fetch-all-logs";
-import { exportSessions } from "../../utils/export-logs";
+import ExportLogsModal from "../../ui/export-logs-modal";
 import useImportLogs from "../../api/logged-workouts/use-import-logs";
 import { ImportedSession, readBackupFile } from "../../utils/import-logs";
 
@@ -31,27 +30,11 @@ function RouteComponent() {
   const goTo = useNavigate();
   const { data } = useListLogs();
   const remove = useDeleteLog();
-  const [exporting, setExporting] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [pendingImport, setPendingImport] = useState<ImportedSession[] | null>(
     null,
   );
   const [importError, setImportError] = useState<string | null>(null);
-
-  async function handleExportAll(format: "json" | "csv") {
-    setExporting(true);
-    try {
-      const sessions = await fetchAllLogs();
-      const dates = sessions.map((s) => s.createdAt.slice(0, 10)).sort();
-      const name = dates.length
-        ? `workouts_${dates[0]}_${dates[dates.length - 1]}`
-        : "workouts";
-      exportSessions(sessions, format, name);
-    } catch {
-      alert("Failed to export workouts");
-    } finally {
-      setExporting(false);
-    }
-  }
 
   return (
     <PageWrapper pageName="Your Workouts">
@@ -64,18 +47,9 @@ function RouteComponent() {
           <Button
             variant="outline"
             size="sm"
-            disabled={exporting}
-            onClick={() => handleExportAll("json")}
+            onClick={() => setExportOpen(true)}
           >
-            JSON
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={exporting}
-            onClick={() => handleExportAll("csv")}
-          >
-            CSV
+            Export
           </Button>
           <Button onClick={() => goTo({ to: "/my-logs/new" })}>
             + Log workout
@@ -96,6 +70,7 @@ function RouteComponent() {
           onClose={() => setPendingImport(null)}
         />
       )}
+      <ExportLogsModal open={exportOpen} onClose={() => setExportOpen(false)} />
       <div className="flex flex-col gap-2">
         {data?.workoutSessions.map((session) => (
           <SessionCard
