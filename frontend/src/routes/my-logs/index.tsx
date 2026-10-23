@@ -121,7 +121,7 @@ function SessionCard({
   const [confirming, setConfirming] = useState(false);
 
   return (
-    <div className="border rounded flex items-stretch">
+    <div className="border rounded flex items-stretch py-2 pr-2">
       <Link
         to="/my-logs/$id"
         params={{ id: session._id }}
@@ -151,28 +151,28 @@ function SessionCard({
       </Link>
 
       {confirming ? (
-        <div className="flex items-center gap-1.5 px-3 border-l shrink-0">
-          <button
-            onClick={() => setConfirming(false)}
-            className="px-2 py-1.5 text-xs text-gray-400 dark:text-gray-300 border rounded-lg hover:bg-white/5"
-          >
-            No
-          </button>
+        <div className="flex items-center gap-3 px-3 shrink-0">
           <button
             onClick={() => {
               onDelete();
               setConfirming(false);
             }}
             disabled={isDeleting}
-            className="px-2 py-1.5 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-500 disabled:opacity-40"
+            className="px-2 py-1.5 text-xs font-semibold text-red-600 bg-white rounded-lg cursor-pointer hover:text-white hover:bg-red-500 disabled:opacity-40"
           >
-            {isDeleting ? "…" : "Delete"}
+            {isDeleting ? "Deleting..." : "Delete"}
+          </button>
+          <button
+            onClick={() => setConfirming(false)}
+            className="px-2 py-1.5 w-16 text-xs text-gray-400 dark:text-gray-300 border cursor-pointer rounded-lg hover:border-black hover:text-black"
+          >
+            No
           </button>
         </div>
       ) : (
         <button
           onClick={() => setConfirming(true)}
-          className="px-5 py-4 border-l text-red-500 hover:bg-red-500 hover:text-white transition-colors text-lg sm:px-3 sm:py-0 sm:text-sm"
+          className="px-5 py-4 font-bold cursor-pointer rounded-lg text-red-500 hover:bg-red-500 hover:text-white transition-colors text-lg sm:px-3 sm:py-0 sm:text-sm"
           aria-label="Delete log"
         >
           ✕
