@@ -34,6 +34,11 @@ import { formatDateTime, formatSessionTitle } from "../../utils/format-date";
 import { exportSessions } from "../../utils/export-logs";
 import Textarea from "../../ui/form/textarea";
 import Input from "../../ui/form/input";
+import {
+  CompletedExerciseList,
+  CompletedSessionTable,
+  CompletedSummary,
+} from "../../ui/completed-session";
 
 type SetValues = {
   reps: number;
@@ -158,6 +163,8 @@ function ActiveLog() {
     (ex) => !addedExerciseIds.has(ex._id),
   );
 
+  const isCompleted = session.status === "completed";
+
   const totalSets = session.exercises.reduce(
     (total, ex) => total + (ex.sets?.length || 0),
     0,
@@ -201,10 +208,26 @@ function ActiveLog() {
             </Button>
           </div>
         </div>
-        <ProgressBar session={session} totalSets={totalSets} />
+        {isCompleted ? (
+          <CompletedSummary session={session} />
+        ) : (
+          <ProgressBar session={session} totalSets={totalSets} />
+        )}
 
-        <div className="flex flex-col gap-6 mb-4">
-          {session.status !== "completed" && (
+        {/* Finished workouts: a table where there's room, compact cards on phones */}
+        {isCompleted && (
+          <div className="mb-4">
+            <div className="hidden md:block">
+              <CompletedSessionTable session={session} />
+            </div>
+            <div className="md:hidden">
+              <CompletedExerciseList session={session} />
+            </div>
+          </div>
+        )}
+
+        {!isCompleted && (
+          <div className="flex flex-col gap-6 mb-4">
             <div className="mb-8">
               {!availableExercises || availableExercises.length === 0 ? (
                 <div className="w-full p-4 border border-dashed rounded text-sm text-gray-500 text-center opacity-40">
@@ -221,27 +244,24 @@ function ActiveLog() {
                 />
               )}
             </div>
-          )}
 
-          {session.exercises.map((exercise, exerciseIndex) => (
-            <ExerciseCard
-              key={(exercise.exercise as PopulatedExercise)._id + exerciseIndex}
-              exercise={exercise}
-              exerciseIndex={exerciseIndex}
-              sessionId={sessionId}
-              sessionCompleted={session.status === "completed"}
-              updateSet={updateSet}
-              deleteSet={deleteSet}
-              initializedRef={initialized}
-              onRemove={
-                session.status !== "completed"
-                  ? () => handleRemoveExercise(exerciseIndex)
-                  : undefined
-              }
-              isRemoving={removeExercise.isPending}
-            />
-          ))}
-        </div>
+            {session.exercises.map((exercise, exerciseIndex) => (
+              <ExerciseCard
+                key={
+                  (exercise.exercise as PopulatedExercise)._id + exerciseIndex
+                }
+                exercise={exercise}
+                exerciseIndex={exerciseIndex}
+                sessionId={sessionId}
+                updateSet={updateSet}
+                deleteSet={deleteSet}
+                initializedRef={initialized}
+                onRemove={() => handleRemoveExercise(exerciseIndex)}
+                isRemoving={removeExercise.isPending}
+              />
+            ))}
+          </div>
+        )}
 
         {session.status !== "completed" && (
           <div className="flex flex-col gap-3">
@@ -675,19 +695,18 @@ type ExerciseCardProps = {
   exercise: WorkoutExercise;
   exerciseIndex: number;
   sessionId: string;
-  sessionCompleted: boolean;
+
   updateSet: ReturnType<typeof useUpdateExerciseSet>;
   deleteSet: ReturnType<typeof useDeleteExerciseSet>;
   initializedRef: React.MutableRefObject<boolean>;
-  onRemove?: () => void;
-  isRemoving?: boolean;
+  onRemove: () => void;
+  isRemoving: boolean;
 };
 
 function ExerciseCard({
   exercise,
   exerciseIndex,
   sessionId,
-  sessionCompleted,
   updateSet,
   deleteSet,
   initializedRef,
@@ -815,42 +834,40 @@ function ExerciseCard({
             </p>
           </div>
         </button>
-        {onRemove && !collapsed && (
-          <div className="ml-3 shrink-0 flex items-center gap-1">
-            {confirmRemoveExercise ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setConfirmRemoveExercise(false);
-                    onRemove();
-                  }}
-                  disabled={isRemoving}
-                  className="px-2 h-8 rounded text-xs font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-40 transition-colors"
-                >
-                  Remove
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirmRemoveExercise(false)}
-                  className="px-2 h-8 rounded text-xs text-gray-400 dark:text-gray-300 hover:text-white transition-colors"
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
+        <div className="ml-3 shrink-0 flex items-center gap-1">
+          {confirmRemoveExercise ? (
+            <>
               <button
                 type="button"
-                onClick={() => setConfirmRemoveExercise(true)}
+                onClick={() => {
+                  setConfirmRemoveExercise(false);
+                  onRemove();
+                }}
                 disabled={isRemoving}
-                className="w-10 h-10 flex items-center lg:items-start justify-center text-gray-400 dark:text-gray-300 hover:text-red-400 text-2xl disabled:opacity-40 transition-colors"
-                title="Remove exercise"
+                className="px-2 h-8 rounded text-xs font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-40 transition-colors"
               >
-                ×
+                Remove
               </button>
-            )}
-          </div>
-        )}
+              <button
+                type="button"
+                onClick={() => setConfirmRemoveExercise(false)}
+                className="px-2 h-8 rounded text-xs text-gray-400 dark:text-gray-300 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmRemoveExercise(true)}
+              disabled={isRemoving}
+              className="w-10 h-10 flex items-center lg:items-start justify-center text-gray-400 dark:text-gray-300 hover:text-red-400 text-2xl disabled:opacity-40 transition-colors"
+              title="Remove exercise"
+            >
+              ×
+            </button>
+          )}
+        </div>
       </div>
 
       {!collapsed && (
@@ -874,7 +891,7 @@ function ExerciseCard({
                 </>
               )}
               <span className="w-14 shrink-0" />
-              {!sessionCompleted && <span className="w-8 shrink-0" />}
+              <span className="w-8 shrink-0" />
             </div>
           )}
 
@@ -922,7 +939,6 @@ function ExerciseCard({
                       </button>
                       <div className="flex items-center gap-3">
                         <button
-                          disabled={sessionCompleted}
                           type="button"
                           onClick={() =>
                             handleToggleCompleted(
@@ -939,38 +955,37 @@ function ExerciseCard({
                         >
                           ✓
                         </button>
-                        {!sessionCompleted &&
-                          (pendingDeleteSet === setIndex ? (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setPendingDeleteSet(null);
-                                  handleDeleteSet(setIndex, setNumber);
-                                }}
-                                disabled={deleteSet.isPending}
-                                className="px-2 h-10 rounded-lg text-xs font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-40 transition-colors"
-                              >
-                                Delete
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setPendingDeleteSet(null)}
-                                className="px-2 h-10 rounded-lg text-xs text-gray-400 dark:text-gray-300 hover:text-white transition-colors"
-                              >
-                                Cancel
-                              </button>
-                            </>
-                          ) : (
+                        {pendingDeleteSet === setIndex ? (
+                          <>
                             <button
                               type="button"
-                              onClick={() => setPendingDeleteSet(setIndex)}
+                              onClick={() => {
+                                setPendingDeleteSet(null);
+                                handleDeleteSet(setIndex, setNumber);
+                              }}
                               disabled={deleteSet.isPending}
-                              className="w-14 h-14 lg:w-10 lg:h-10 rounded-lg border border-red-500/40 text-red-500 text-lg hover:bg-red-500 hover:text-white active:bg-red-600 disabled:opacity-40 transition-colors"
+                              className="px-2 h-10 rounded-lg text-xs font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-40 transition-colors"
                             >
-                              ✕
+                              Delete
                             </button>
-                          ))}
+                            <button
+                              type="button"
+                              onClick={() => setPendingDeleteSet(null)}
+                              className="px-2 h-10 rounded-lg text-xs text-gray-400 dark:text-gray-300 hover:text-white transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setPendingDeleteSet(setIndex)}
+                            disabled={deleteSet.isPending}
+                            className="w-14 h-14 lg:w-10 lg:h-10 rounded-lg border border-red-500/40 text-red-500 text-lg hover:bg-red-500 hover:text-white active:bg-red-600 disabled:opacity-40 transition-colors"
+                          >
+                            ✕
+                          </button>
+                        )}
                       </div>
                     </div>
 
@@ -1061,7 +1076,6 @@ function ExerciseCard({
 
                     <div className="flex gap-1 items-center justify-center h-full">
                       <button
-                        disabled={sessionCompleted}
                         type="button"
                         onClick={() =>
                           handleToggleCompleted(setIndex, setNumber, completed)
@@ -1075,38 +1089,37 @@ function ExerciseCard({
                         ✓
                       </button>
 
-                      {!sessionCompleted &&
-                        (pendingDeleteSet === setIndex ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setPendingDeleteSet(null);
-                                handleDeleteSet(setIndex, setNumber);
-                              }}
-                              disabled={deleteSet.isPending}
-                              className="px-2 h-8 shrink-0 rounded-lg text-xs font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-40 transition-colors"
-                            >
-                              Delete
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setPendingDeleteSet(null)}
-                              className="px-2 h-8 shrink-0 rounded-lg text-xs text-gray-400 dark:text-gray-300 hover:text-white transition-colors"
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        ) : (
+                      {pendingDeleteSet === setIndex ? (
+                        <>
                           <button
                             type="button"
-                            onClick={() => setPendingDeleteSet(setIndex)}
+                            onClick={() => {
+                              setPendingDeleteSet(null);
+                              handleDeleteSet(setIndex, setNumber);
+                            }}
                             disabled={deleteSet.isPending}
-                            className="w-8 h-8 shrink-0 rounded-lg border border-red-500/40 text-red-500 text-sm hover:bg-red-500 hover:text-white active:bg-red-600 disabled:opacity-40 transition-colors"
+                            className="px-2 h-8 shrink-0 rounded-lg text-xs font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-40 transition-colors"
                           >
-                            ✕
+                            Delete
                           </button>
-                        ))}
+                          <button
+                            type="button"
+                            onClick={() => setPendingDeleteSet(null)}
+                            className="px-2 h-8 shrink-0 rounded-lg text-xs text-gray-400 dark:text-gray-300 hover:text-white transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setPendingDeleteSet(setIndex)}
+                          disabled={deleteSet.isPending}
+                          className="w-8 h-8 shrink-0 rounded-lg border border-red-500/40 text-red-500 text-sm hover:bg-red-500 hover:text-white active:bg-red-600 disabled:opacity-40 transition-colors"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1114,16 +1127,14 @@ function ExerciseCard({
             })}
           </div>
 
-          {!sessionCompleted && (
-            <button
-              type="button"
-              onClick={handleAddSet}
-              disabled={updateSet.isPending}
-              className="w-full h-14 border-2 border-dashed rounded-lg text-gray-400 dark:text-gray-300 hover:text-white hover:border-orange-400 font-medium transition-colors disabled:opacity-40"
-            >
-              + Add set
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleAddSet}
+            disabled={updateSet.isPending}
+            className="w-full h-14 border-2 border-dashed rounded-lg text-gray-400 dark:text-gray-300 hover:text-white hover:border-orange-400 font-medium transition-colors disabled:opacity-40"
+          >
+            + Add set
+          </button>
         </>
       )}
     </div>

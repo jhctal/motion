@@ -24,6 +24,19 @@ export function formatTime(date: string | Date) {
   });
 }
 
+// Locale-aware number, e.g. 12,450
+export function formatNumber(n: number) {
+  return n.toLocaleString(getLocale());
+}
+
+// e.g. "45 min", "1 h 10 min"
+export function formatDuration(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+  const rest = minutes % 60;
+  const hours = Math.floor(minutes / 60);
+  return rest ? `${hours} h ${rest} min` : `${hours} h`;
+}
+
 // e.g. "Wed 21 Oct, 19:18" in the user's locale
 export function formatDateTime(date: string | Date) {
   return new Date(date).toLocaleString(getLocale(), {
