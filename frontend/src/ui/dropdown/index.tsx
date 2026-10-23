@@ -19,7 +19,10 @@ const DropdownContext = createContext<DropdownContextValue | null>(null);
 
 function useDropdownContext() {
   const ctx = useContext(DropdownContext);
-  if (!ctx) throw new Error("Dropdown compound components must be used within a Dropdown");
+  if (!ctx)
+    throw new Error(
+      "Dropdown compound components must be used within a Dropdown",
+    );
   return ctx;
 }
 
@@ -33,7 +36,10 @@ const Dropdown = ({ children, className }: DropdownProps) => {
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     }
@@ -52,7 +58,11 @@ const Dropdown = ({ children, className }: DropdownProps) => {
 
 type DropdownTriggerProps = ButtonHTMLAttributes<HTMLButtonElement>;
 
-const DropdownTrigger = ({ children, className, ...props }: DropdownTriggerProps) => {
+const DropdownTrigger = ({
+  children,
+  className,
+  ...props
+}: DropdownTriggerProps) => {
   const { open, setOpen } = useDropdownContext();
 
   return (
@@ -74,7 +84,11 @@ type DropdownContentProps = PropsWithChildren<{
   className?: string;
 }>;
 
-const DropdownContent = ({ children, align = "right", className }: DropdownContentProps) => {
+const DropdownContent = ({
+  children,
+  align = "right",
+  className,
+}: DropdownContentProps) => {
   const { open } = useDropdownContext();
 
   if (!open) return null;
@@ -83,7 +97,7 @@ const DropdownContent = ({ children, align = "right", className }: DropdownConte
     <div
       role="menu"
       className={cn(
-        "absolute z-50 top-full mt-1 min-w-40 py-1 rounded-lg bg-white border border-gray-200 shadow-lg",
+        "absolute z-50 top-full mt-1 min-w-40 py-1 rounded-lg bg-white border border-gray-200 shadow-lg dark:bg-zinc-900 dark:border-zinc-700",
         align === "right" ? "right-0" : "left-0",
         className,
       )}
@@ -100,7 +114,13 @@ type DropdownItemProps = PropsWithChildren<{
   className?: string;
 }>;
 
-const DropdownItem = ({ children, onClick, icon, destructive, className }: DropdownItemProps) => {
+const DropdownItem = ({
+  children,
+  onClick,
+  icon,
+  destructive,
+  className,
+}: DropdownItemProps) => {
   const { setOpen } = useDropdownContext();
 
   return (
@@ -112,8 +132,9 @@ const DropdownItem = ({ children, onClick, icon, destructive, className }: Dropd
         onClick?.();
       }}
       className={cn(
-        "w-full flex items-center gap-2 px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 transition-colors",
-        destructive && "text-red-600 hover:bg-red-50",
+        "w-full flex items-center gap-2 px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-zinc-800 transition-colors",
+        destructive &&
+          "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10",
         className,
       )}
     >
