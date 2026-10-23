@@ -129,7 +129,7 @@ export function downloadFile(filename: string, content: string, type: string) {
 }
 
 function slugify(str: string) {
-  return str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return str.toLowerCase().replace(/[^a-z0-9_]+/g, "-").replace(/^-|-$/g, "");
 }
 
 export function exportSessions(

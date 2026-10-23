@@ -41,8 +41,11 @@ function RouteComponent() {
     setExporting(true);
     try {
       const sessions = await fetchAllLogs();
-      const today = new Date().toISOString().slice(0, 10);
-      exportSessions(sessions, format, `workouts-${today}`);
+      const dates = sessions.map((s) => s.createdAt.slice(0, 10)).sort();
+      const name = dates.length
+        ? `workouts_${dates[0]}_${dates[dates.length - 1]}`
+        : "workouts";
+      exportSessions(sessions, format, name);
     } catch {
       alert("Failed to export workouts");
     } finally {
