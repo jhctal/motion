@@ -149,6 +149,25 @@ function ActiveLog() {
         <ProgressBar session={session} totalSets={totalSets} />
 
         <div className="flex flex-col gap-6 mb-4">
+          {session.status !== "completed" && (
+            <div className="mb-8">
+              {!availableExercises || availableExercises.length === 0 ? (
+                <div className="w-full p-4 border border-dashed rounded text-sm text-gray-500 text-center opacity-40">
+                  — all exercises added —
+                </div>
+              ) : (
+                <FilterableExerciseSelect
+                  exercises={availableExercises}
+                  onSelect={handleAddExercise}
+                  disabled={addExercise.isPending}
+                  placeholder={
+                    addExercise.isPending ? "Adding..." : "+ Add exercise"
+                  }
+                />
+              )}
+            </div>
+          )}
+
           {session.exercises.map((exercise, exerciseIndex) => (
             <ExerciseCard
               key={(exercise.exercise as PopulatedExercise)._id + exerciseIndex}
@@ -168,25 +187,6 @@ function ActiveLog() {
             />
           ))}
         </div>
-
-        {session.status !== "completed" && (
-          <div className="mb-8">
-            {!availableExercises || availableExercises.length === 0 ? (
-              <div className="w-full p-4 border border-dashed rounded text-sm text-gray-500 text-center opacity-40">
-                — all exercises added —
-              </div>
-            ) : (
-              <FilterableExerciseSelect
-                exercises={availableExercises}
-                onSelect={handleAddExercise}
-                disabled={addExercise.isPending}
-                placeholder={
-                  addExercise.isPending ? "Adding..." : "+ Add exercise"
-                }
-              />
-            )}
-          </div>
-        )}
 
         {session.status !== "completed" && (
           <div className="flex flex-col gap-3">
@@ -454,7 +454,7 @@ function SetStepper({
               key={s}
               type="button"
               onClick={() => setActiveStep(s)}
-              className={`py-1 rounded text-xs font-medium transition-colors ${
+              className={`py-1 rounded text-xs font-medium transition-colors h-14 lg:h-6 ${
                 activeStep === s
                   ? "bg-orange-500 text-black"
                   : "border border-black text-gray-400 dark:text-gray-300 hover:border-orange-400"
@@ -474,7 +474,7 @@ function SetStepper({
               onClick={() =>
                 setValue(name as unknown as Parameters<typeof setValue>[0], p)
               }
-              className={`py-1 rounded text-xs font-medium transition-colors ${
+              className={`py-1 h-14 lg:h-6 rounded text-xs font-medium transition-colors ${
                 val === p
                   ? "bg-orange-500 text-black"
                   : "border border-black text-gray-400 dark:text-gray-300 hover:border-orange-400"
@@ -738,7 +738,7 @@ function ExerciseCard({
                           </span>
                         )}
                       </button>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <button
                           disabled={sessionCompleted}
                           type="button"
@@ -749,7 +749,7 @@ function ExerciseCard({
                               completed,
                             )
                           }
-                          className={`w-10 h-10 rounded-lg border-2 text-sm font-bold transition-colors ${
+                          className={`w-14 h-14 lg:w-10 lg:h-10 rounded-lg border-2 text-sm font-bold transition-colors ${
                             completed
                               ? "bg-orange-500 border-orange-500 text-black"
                               : "border-white/30 text-gray-400 dark:text-gray-300 hover:border-orange-400 active:bg-white/5"
@@ -784,7 +784,7 @@ function ExerciseCard({
                               type="button"
                               onClick={() => setPendingDeleteSet(setIndex)}
                               disabled={deleteSet.isPending}
-                              className="w-10 h-10 rounded-lg border border-red-500/40 text-red-500 text-lg hover:bg-red-500 hover:text-white active:bg-red-600 disabled:opacity-40 transition-colors"
+                              className="w-14 h-14 lg:w-10 lg:h-10 rounded-lg border border-red-500/40 text-red-500 text-lg hover:bg-red-500 hover:text-white active:bg-red-600 disabled:opacity-40 transition-colors"
                             >
                               ✕
                             </button>
