@@ -1,13 +1,10 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ClockIcon,
-  GripVerticalIcon,
-  TriangleAlertIcon,
-} from "lucide-react";
+import { ClockIcon, TriangleAlertIcon } from "lucide-react";
 import { useState } from "react";
-import { useListExercises } from "../../api/exercises/use-list-exercises";
+import {
+  useListExercises,
+  type Exercise,
+} from "../../api/exercises/use-list-exercises";
 import useListWorkouts from "../../api/workouts/use-list-workouts";
 import {
   useCreateWorkoutSession,
@@ -22,9 +19,12 @@ import {
   formatSessionTitle,
   formatTime,
 } from "../../utils/format-date";
-import useRecentlyTrainedMuscles from "../../api/workouts/use-recently-trained-muscles";
+import useTrainingHistory from "../../api/workouts/use-training-history";
+import { isRecovering } from "../../utils/training-history";
+import { suggestExercises } from "../../utils/suggest-exercises";
+import PlanExerciseCard from "../../ui/plan-exercise-card";
+import ExerciseSuggestions from "../../ui/exercise-suggestions";
 import BodyMap from "../../ui/body-map";
-import cn from "../../utils/cn";
 import {
   ESTIMATE_DEFAULTS,
   estimateWorkout,
@@ -49,6 +49,8 @@ type SessionExercise = {
   name: string;
   category: string;
   mainTargetMuscle: string;
+  // Full exercise record, for card details and instructions
+  details?: Exercise;
 } & EstimateExercise;
 
 function NewLog() {
@@ -90,6 +92,7 @@ function NewLog() {
         targetSets: te.targetSets,
         restSeconds: te.restSeconds,
         workSeconds: te.targetDurationSeconds,
+        details: te.exercise,
       }));
     setSelectedExercises(exercises);
   }
@@ -106,12 +109,19 @@ function NewLog() {
         category: exercise.category ?? "strength",
         mainTargetMuscle: exercise.mainTargetMuscle,
         durationMinutes: exercise.duration,
+        details: exercise,
       },
     ]);
   }
 
   function removeExercise(uid: string) {
     setSelectedExercises((prev) => prev.filter((ex) => ex.uid !== uid));
+  }
+
+  function setExerciseSets(uid: string, sets: number) {
+    setSelectedExercises((prev) =>
+      prev.map((ex) => (ex.uid === uid ? { ...ex, targetSets: sets } : ex)),
+    );
   }
 
   // Exercise order is saved with the session, so let the user rearrange it
@@ -139,8 +149,15 @@ function NewLog() {
 
   const estimate = estimateWorkout(selectedExercises);
 
+  // One request covers recovery, "last time" figures and suggestions
+  const history = useTrainingHistory();
+  // Not memoised: recovery depends on the current time as well as the data,
+  // so a page left open must drop warnings once their window passes
+  const recent = new Map(
+    [...history.lastTrained].filter(([, date]) => isRecovering(date)),
+  );
+
   // Muscles in this plan that were trained recently, most recent first
-  const recent = useRecentlyTrainedMuscles();
   const recovering = muscleCounts
     .map(([muscle]) => [muscle, recent.get(muscle.toLowerCase())] as const)
     .filter((entry): entry is readonly [string, Date] => !!entry[1])
@@ -150,6 +167,13 @@ function NewLog() {
     (ex) => !selectedExercises.some((sel) => sel.exerciseId === ex._id),
   );
 
+  const suggestions = suggestExercises({
+    planMuscles: selectedExercises.map((ex) => ex.mainTargetMuscle),
+    planExerciseIds: selectedExercises.map((ex) => ex.exerciseId),
+    exercises: allExercises ?? [],
+    lastTrained: history.lastTrained,
+  });
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -158,10 +182,27 @@ function NewLog() {
     // the date is added when displayed (see formatSessionTitle), so don't store it here
     const name = sessionName.trim() || "Workout";
 
-    const sessionExercises = selectedExercises.map((se) => ({
-      exercise: se.exerciseId,
-      sets: [],
-    }));
+    // Create the planned sets up front, pre-filled from last time where known
+    const sessionExercises = selectedExercises.map((se) => {
+      const isCardio = se.category === "cardio";
+      const last = history.lastPerformance.get(se.exerciseId)?.sets ?? [];
+      return {
+        exercise: se.exerciseId,
+        sets: Array.from(
+          { length: se.targetSets ?? ESTIMATE_DEFAULTS.sets },
+          (_, i) => {
+            const prev = last[Math.min(i, last.length - 1)];
+            return {
+              setNumber: i + 1,
+              reps: isCardio ? 0 : (prev?.reps ?? 5),
+              weight: isCardio ? 0 : (prev?.weight ?? 0),
+              durationInSeconds: isCardio ? prev?.durationInSeconds || 60 : 0,
+              completed: false,
+            };
+          },
+        ),
+      };
+    });
 
     const session = await createSession.mutateAsync({
       name,
@@ -179,7 +220,7 @@ function NewLog() {
     <PageWrapper pageName="New workout">
       <form
         onSubmit={handleSubmit}
-        className="max-w-2xl lg:max-w-6xl grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start"
+        className="max-w-2xl lg:max-w-6xl grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start"
       >
         <div className="flex flex-col gap-6 min-w-0">
           {/* Session name */}
@@ -268,78 +309,48 @@ function NewLog() {
             </div>
 
             {selectedExercises.length > 0 ? (
-              <ol className="grid gap-2 md:grid-cols-2">
+              <ol className="grid grid-cols-1 gap-2 md:grid-cols-2 md:items-start">
                 {selectedExercises.map((exercise, index) => (
-                  <li
+                  <PlanExerciseCard
                     key={exercise.uid}
-                    draggable
-                    onDragStart={(e) => {
-                      setDraggingUid(exercise.uid);
-                      e.dataTransfer.effectAllowed = "move";
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      const from = selectedExercises.findIndex(
-                        (ex) => ex.uid === draggingUid,
-                      );
-                      if (from !== -1) moveExercise(from, index);
-                    }}
-                    onDragEnd={() => setDraggingUid(null)}
-                    className={cn(
-                      "group flex items-center gap-3 pl-2 pr-2 py-2 rounded-lg border bg-gray-50 dark:bg-zinc-900 transition-colors",
-                      draggingUid === exercise.uid
-                        ? "border-orange-500 opacity-60"
-                        : "border-gray-300 dark:border-zinc-700 md:hover:border-orange-400",
+                    index={index}
+                    total={selectedExercises.length}
+                    name={exercise.name}
+                    mainTargetMuscle={exercise.mainTargetMuscle}
+                    category={exercise.category}
+                    details={exercise.details}
+                    sets={exercise.targetSets ?? ESTIMATE_DEFAULTS.sets}
+                    onSetsChange={(sets) =>
+                      setExerciseSets(
+                        exercise.uid,
+                        Math.min(10, Math.max(1, sets)),
+                      )
+                    }
+                    lastPerformance={history.lastPerformance.get(
+                      exercise.exerciseId,
                     )}
-                  >
-                    <GripVerticalIcon
-                      aria-hidden="true"
-                      size={16}
-                      className="hidden md:block shrink-0 text-gray-300 dark:text-zinc-600 cursor-grab"
-                    />
-                    <span className="size-6 shrink-0 grid place-items-center rounded-full bg-gray-200 dark:bg-zinc-800 text-xs font-semibold text-gray-600 dark:text-gray-300">
-                      {index + 1}
-                    </span>
-                    <p className="flex-1 min-w-0 font-medium capitalize text-sm truncate">
-                      {exercise.name}
-                    </p>
-                    <RecoveryIcon
-                      muscle={exercise.mainTargetMuscle}
-                      recent={recent}
-                    />
-                    {exercise.mainTargetMuscle && (
-                      <MuscleTag muscle={exercise.mainTargetMuscle} />
+                    recoveringSince={recent.get(
+                      exercise.mainTargetMuscle?.toLowerCase() ?? "",
                     )}
-                    {/* keyboard-friendly reordering; drag does the same on desktop */}
-                    <div className="hidden md:flex opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
-                      <button
-                        type="button"
-                        onClick={() => moveExercise(index, index - 1)}
-                        disabled={index === 0}
-                        aria-label={`Move ${exercise.name} earlier`}
-                        className="size-7 grid place-items-center rounded text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 disabled:invisible"
-                      >
-                        <ChevronUpIcon size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveExercise(index, index + 1)}
-                        disabled={index === selectedExercises.length - 1}
-                        aria-label={`Move ${exercise.name} later`}
-                        className="size-7 grid place-items-center rounded text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 disabled:invisible"
-                      >
-                        <ChevronDownIcon size={16} />
-                      </button>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeExercise(exercise.uid)}
-                      aria-label={`Remove ${exercise.name}`}
-                      className="size-8 shrink-0 grid place-items-center rounded text-lg leading-none text-gray-400 dark:text-gray-300 hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                    >
-                      ×
-                    </button>
-                  </li>
+                    dragging={draggingUid === exercise.uid}
+                    dragProps={{
+                      draggable: true,
+                      onDragStart: (e) => {
+                        setDraggingUid(exercise.uid);
+                        e.dataTransfer.effectAllowed = "move";
+                      },
+                      onDragOver: (e) => {
+                        e.preventDefault();
+                        const from = selectedExercises.findIndex(
+                          (ex) => ex.uid === draggingUid,
+                        );
+                        if (from !== -1) moveExercise(from, index);
+                      },
+                      onDragEnd: () => setDraggingUid(null),
+                    }}
+                    onMove={(delta) => moveExercise(index, index + delta)}
+                    onRemove={() => removeExercise(exercise.uid)}
+                  />
                 ))}
               </ol>
             ) : (
@@ -348,6 +359,11 @@ function NewLog() {
               </p>
             )}
           </section>
+
+          <ExerciseSuggestions
+            suggestions={suggestions}
+            onAdd={handleAddExercise}
+          />
         </div>
 
         {/* Summary: sits beside the plan on large screens, below it on small ones */}
@@ -554,25 +570,5 @@ function WorkoutSummary({
         )}
       </div>
     </>
-  );
-}
-
-// Warns on an exercise card when its muscle was trained recently
-function RecoveryIcon({
-  muscle,
-  recent,
-}: {
-  muscle?: string;
-  recent: Map<string, Date>;
-}) {
-  const trained = muscle ? recent.get(muscle.toLowerCase()) : undefined;
-  if (!muscle || !trained) return null;
-
-  const label = `${muscle} trained ${formatRelativeDay(trained)}`;
-  return (
-    <span className="shrink-0 text-amber-500" title={label}>
-      <TriangleAlertIcon size={15} aria-hidden="true" />
-      <span className="sr-only">{label}</span>
-    </span>
   );
 }

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import cn from "../../utils/cn";
 import { formatRelativeDay } from "../../utils/format-date";
-import { RECOVERY_HOURS } from "../../utils/recovery";
+import { RECOVERY_HOURS } from "../../utils/training-history";
 import { muscleFillClass } from "../muscle-tag/colours";
 
 type Region = { muscle: string; shape: ReactNode };

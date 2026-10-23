@@ -38,7 +38,7 @@ export function LastWorkoutWidget() {
               {formatSessionTitle(session)}
             </p>
             <p className="text-xs text-gray-400 dark:text-gray-300 mt-0.5">
-              {timeAgo(session.completedAt)}
+              {timeAgo(session.startedAt ?? session.completedAt)}
             </p>
           </div>
           <div className="flex gap-6 text-sm mt-1">

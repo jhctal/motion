@@ -73,8 +73,28 @@ const completeWorkoutSession = asyncHandler(async (req, res) => {
     throw new Error("Not authorized to modify this workout");
   }
 
+  // Workouts finished late can say when they actually ended, so the
+  // stored duration isn't inflated by the time the session sat open
+  let completedAt = new Date();
+  if (req.body.completedAt !== undefined) {
+    const requested = new Date(req.body.completedAt);
+    const started = workoutSession.startedAt ?? workoutSession.createdAt;
+    const latest = new Date(Date.now() + 60 * 1000); // allow small clock drift
+    if (
+      Number.isNaN(requested.getTime()) ||
+      requested < started ||
+      requested > latest
+    ) {
+      res.status(400);
+      throw new Error(
+        "Finish time must be between the start of the workout and now"
+      );
+    }
+    completedAt = requested;
+  }
+
   workoutSession.status = "completed";
-  workoutSession.completedAt = new Date();
+  workoutSession.completedAt = completedAt;
   workoutSession.rating = rating;
   workoutSession.feeling = feeling;
   workoutSession.notes = notes;

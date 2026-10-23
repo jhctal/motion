@@ -24,6 +24,17 @@ export function formatTime(date: string | Date) {
   });
 }
 
+// e.g. "Wed 21 Oct, 19:18" in the user's locale
+export function formatDateTime(date: string | Date) {
+  return new Date(date).toLocaleString(getLocale(), {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 // "today", "yesterday", "2 days ago" by calendar day, in the user's locale
 export function formatRelativeDay(date: string | Date, now = new Date()) {
   const startOfDay = (d: Date) =>
