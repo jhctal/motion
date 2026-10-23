@@ -4,7 +4,7 @@ import {
   redirect,
   useNavigate,
 } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import useListLogs, {
   WorkoutSession,
 } from "../../api/logged-workouts/use-list-logs";
@@ -12,6 +12,9 @@ import { useDeleteLog } from "../../api/logged-workouts/use-delete-log";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
 import cn from "../../utils/cn";
 import Button from "../../ui/button/button";
+import ExportLogsModal from "../../ui/export-logs-modal";
+import useImportLogs from "../../api/logged-workouts/use-import-logs";
+import { ImportedSession, readBackupFile } from "../../utils/import-logs";
 
 export const Route = createFileRoute("/my-logs/")({
   beforeLoad: async () => {
@@ -27,17 +30,47 @@ function RouteComponent() {
   const goTo = useNavigate();
   const { data } = useListLogs();
   const remove = useDeleteLog();
+  const [exportOpen, setExportOpen] = useState(false);
+  const [pendingImport, setPendingImport] = useState<ImportedSession[] | null>(
+    null,
+  );
+  const [importError, setImportError] = useState<string | null>(null);
 
   return (
     <PageWrapper pageName="Your Workouts">
-      <div className="flex items-center justify-between mb-3 mt-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3 mt-2">
         <span className="text-sm text-gray-400 dark:text-gray-300">
           {data?.workoutSessions.length ?? 0} sessions
         </span>
-        <Button onClick={() => goTo({ to: "/my-logs/new" })}>
-          + Log workout
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <ImportButton onFileRead={setPendingImport} onError={setImportError} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setExportOpen(true)}
+          >
+            Export
+          </Button>
+          <Button onClick={() => goTo({ to: "/my-logs/new" })}>
+            + Log workout
+          </Button>
+        </div>
       </div>
+      {importError && (
+        <div className="mb-3 p-3 border border-red-500 rounded text-sm text-red-500 flex justify-between gap-2">
+          {importError}
+          <button onClick={() => setImportError(null)} aria-label="Dismiss">
+            ✕
+          </button>
+        </div>
+      )}
+      {pendingImport && (
+        <ImportPanel
+          sessions={pendingImport}
+          onClose={() => setPendingImport(null)}
+        />
+      )}
+      <ExportLogsModal open={exportOpen} onClose={() => setExportOpen(false)} />
       <div className="flex flex-col gap-2">
         {data?.workoutSessions.map((session) => (
           <SessionCard
@@ -53,6 +86,128 @@ function RouteComponent() {
         ))}
       </div>
     </PageWrapper>
+  );
+}
+
+function ImportButton({
+  onFileRead,
+  onError,
+}: {
+  onFileRead: (sessions: ImportedSession[]) => void;
+  onError: (message: string | null) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow picking the same file again
+    if (!file) return;
+    try {
+      const sessions = await readBackupFile(file);
+      if (sessions.length === 0) throw new Error("No workouts found in file");
+      onError(null);
+      onFileRead(sessions);
+    } catch (err) {
+      onError(
+        err instanceof Error ? err.message : "Couldn't read that file",
+      );
+    }
+  }
+
+  return (
+    <>
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".json,.csv,application/json,text/csv"
+        className="hidden"
+        onChange={handleChange}
+      />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => inputRef.current?.click()}
+      >
+        Import
+      </Button>
+    </>
+  );
+}
+
+function ImportPanel({
+  sessions,
+  onClose,
+}: {
+  sessions: ImportedSession[];
+  onClose: () => void;
+}) {
+  const importLogs = useImportLogs();
+  const result = importLogs.data;
+  const setCount = sessions.reduce(
+    (total, s) => total + s.exercises.reduce((n, ex) => n + ex.sets.length, 0),
+    0,
+  );
+
+  return (
+    <div className="mb-3 p-3 border rounded text-sm flex flex-col gap-2">
+      {!result ? (
+        <>
+          <p>
+            Found <strong>{sessions.length}</strong> workout
+            {sessions.length === 1 ? "" : "s"} with {setCount} sets. Workouts
+            you already have will be skipped.
+          </p>
+          {importLogs.isError && (
+            <p className="text-red-500">
+              Import failed part-way. Workouts already imported were kept;
+              running it again will skip them.
+            </p>
+          )}
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              disabled={importLogs.isPending}
+              onClick={() => importLogs.mutate(sessions)}
+            >
+              {importLogs.isPending ? "Importing…" : "Import"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={importLogs.isPending}
+              onClick={onClose}
+            >
+              Cancel
+            </Button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p>
+            Imported <strong>{result.imported}</strong>, skipped{" "}
+            {result.skipped.length} already present
+            {result.failed.length > 0 && `, ${result.failed.length} failed`}.
+          </p>
+          {result.createdExercises.length > 0 && (
+            <p className="text-gray-500 dark:text-gray-300">
+              New custom exercises: {result.createdExercises.join(", ")}
+            </p>
+          )}
+          {result.failed.length > 0 && (
+            <ul className="text-red-500 list-disc pl-5">
+              {result.failed.map((f, i) => (
+                <li key={i}>
+                  {f.name}: {f.reason}
+                </li>
+              ))}
+            </ul>
+          )}
+          <Button variant="outline" size="sm" className="self-start" onClick={onClose}>
+            Done
+          </Button>
+        </>
+      )}
+    </div>
   );
 }
 
