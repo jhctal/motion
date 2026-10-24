@@ -203,7 +203,7 @@ function ActiveLog() {
           </div>
           {/* Only finished workouts are worth exporting */}
           {isCompleted && (
-            <div className="order-first sm:order-none flex flex-wrap items-center gap-2 shrink-0 text-sm text-gray-500 dark:text-gray-400">
+            <div className="order-first sm:order-0 flex flex-wrap items-center gap-2 shrink-0 text-sm text-gray-500 dark:text-gray-400">
               Download this workout:
               <Button
                 variant="outline"
@@ -986,7 +986,7 @@ function ExerciseCard({
       )}
 
       {/* Tablet and up: details and last time */}
-      <p className="hidden md:block pl-[4.25rem] pr-3 pb-2 -mt-1 text-xs text-gray-500 dark:text-gray-400 truncate">
+      <p className="hidden md:block pl-17 pr-3 pb-2 -mt-1 text-xs text-gray-500 dark:text-gray-400 truncate">
         <span className="capitalize">
           <ExerciseMeta category={exerciseData.category} details={details} />
         </span>

@@ -4,6 +4,7 @@ import { useWorkoutSessions } from "../../api/workouts/use-workout-sessions";
 import {
   formatCompact,
   formatDuration,
+  formatNumber,
   formatRelativeDay,
   formatSessionTitle,
 } from "../../utils/format-date";
@@ -18,8 +19,55 @@ type LastSession = {
   completedAt?: string;
   duration: number;
   totalWeight: number;
-  exercises: { exercise: string | { mainTargetMuscle?: string } }[];
+  exercises: {
+    _id?: string;
+    exercise: string | { name?: string; mainTargetMuscle?: string };
+    sets?: { weight?: number; reps?: number; completed?: boolean }[];
+  }[];
 };
+
+// Exercises shown in the breakdown (biggest share first) before "+N more"
+const MAX_EXERCISES = 3;
+
+// Per exercise: completed sets, the heaviest completed set (more reps wins
+// a tie) and its volume, for the breakdown list
+function summariseExercises(session: LastSession) {
+  return session.exercises.map((ex, i) => {
+    const done = (ex.sets ?? []).filter((set) => set.completed);
+    const best = done.reduce<(typeof done)[number] | undefined>(
+      (top, set) =>
+        !top ||
+        (set.weight ?? 0) > (top.weight ?? 0) ||
+        ((set.weight ?? 0) === (top.weight ?? 0) &&
+          (set.reps ?? 0) > (top.reps ?? 0))
+          ? set
+          : top,
+      undefined,
+    );
+    return {
+      key: ex._id ?? String(i),
+      name:
+        typeof ex.exercise === "object" && ex.exercise.name
+          ? ex.exercise.name
+          : "Exercise",
+      sets: done.length,
+      best,
+      volume: done.reduce(
+        (sum, set) => sum + (set.weight ?? 0) * (set.reps ?? 0),
+        0,
+      ),
+    };
+  });
+}
+
+// "60 kg × 8", or just "12 reps" for bodyweight
+function formatBestSet(set?: { weight?: number; reps?: number }) {
+  if (!set) return "–";
+  const reps = set.reps ?? 0;
+  return set.weight
+    ? `${formatNumber(set.weight)} kg × ${reps}`
+    : `${reps} reps`;
+}
 
 export function LastWorkoutWidget() {
   const { data, isLoading } = useWorkoutSessions({
@@ -38,6 +86,16 @@ export function LastWorkoutWidget() {
         .filter((m): m is string => !!m),
     ),
   ];
+  const exercises = session ? summariseExercises(session) : [];
+  // bars show each exercise's share of the volume; bodyweight-only
+  // sessions have none, so fall back to share of sets
+  const totalVolume = exercises.reduce((sum, ex) => sum + ex.volume, 0);
+  const totalSets = exercises.reduce((sum, ex) => sum + ex.sets, 0);
+  const share = (ex: (typeof exercises)[number]) =>
+    totalVolume ? ex.volume / totalVolume : totalSets ? ex.sets / totalSets : 0;
+  const topExercises = [...exercises]
+    .sort((a, b) => share(b) - share(a))
+    .slice(0, MAX_EXERCISES);
   const stats = session && [
     { label: "Duration", value: formatDuration(session.duration) },
     { label: "Volume", value: `${formatCompact(session.totalWeight)} kg` },
@@ -89,6 +147,57 @@ export function LastWorkoutWidget() {
               </div>
             ))}
           </dl>
+
+          {exercises.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <ul className="flex flex-col gap-2.5">
+                {topExercises.map((ex) => {
+                  const percent = Math.round(share(ex) * 100);
+                  return (
+                    <li key={ex.key} className="flex flex-col gap-1">
+                      <div className="flex items-baseline justify-between gap-3 text-sm">
+                        <span className="min-w-0 truncate font-medium text-gray-800 dark:text-gray-200">
+                          {ex.name}
+                        </span>
+                        <span className="shrink-0 text-xs tabular-nums text-gray-500 dark:text-gray-400">
+                          {ex.sets} {ex.sets === 1 ? "set" : "sets"} · best{" "}
+                          <span className="font-medium text-gray-700 dark:text-gray-300">
+                            {formatBestSet(ex.best)}
+                          </span>
+                        </span>
+                      </div>
+                      {/* share of the session's volume (or sets) */}
+                      <div className="flex items-center gap-2">
+                        <div
+                          aria-hidden="true"
+                          className="h-1 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-zinc-800"
+                        >
+                          <div
+                            className="h-full rounded-full bg-orange-500/80"
+                            style={{ width: `${percent}%` }}
+                          />
+                        </div>
+                        <span className="w-8 shrink-0 text-right text-[11px] font-medium tabular-nums text-gray-500 dark:text-gray-400">
+                          {percent}%
+                          <span className="sr-only">
+                            {totalVolume ? " of volume" : " of sets"}
+                          </span>
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+              {exercises.length > MAX_EXERCISES && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  +{exercises.length - MAX_EXERCISES} more{" "}
+                  {exercises.length - MAX_EXERCISES === 1
+                    ? "exercise"
+                    : "exercises"}
+                </p>
+              )}
+            </div>
+          )}
 
           {muscles.length > 0 && (
             <div className="flex flex-wrap gap-1">

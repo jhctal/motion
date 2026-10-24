@@ -3,8 +3,29 @@ const router = express.Router();
 import asyncHandler from "../middleware/async-handler.js";
 import FitnessGoal from "../models/fitness-goal-model.js";
 import { protect } from "../middleware/auth-middleware.js";
+import pickFields from "../utils/pick-fields.js";
 
 router.use(protect);
+
+const EDITABLE_FIELDS = [
+  "title",
+  "description",
+  "goalType",
+  "targetValue",
+  "targetUnit",
+  "currentValue",
+  "exercise",
+  "targetDate",
+  "startDate",
+  "completedDate",
+  "status",
+  "progress",
+  "priority",
+  "reward",
+  "milestones",
+  "notes",
+  "tags",
+];
 
 // @desc Create fitness goal
 // @route POST /api/fitness-goals
@@ -13,7 +34,7 @@ router.post(
   "/",
   asyncHandler(async (req, res) => {
     const goal = await FitnessGoal.create({
-      ...req.body,
+      ...pickFields(req.body, EDITABLE_FIELDS),
       user: req.user._id,
     });
 
@@ -86,7 +107,7 @@ router.put(
       throw new Error("Not authorized to update this goal");
     }
 
-    Object.assign(goal, req.body);
+    Object.assign(goal, pickFields(req.body, EDITABLE_FIELDS));
 
     // Update progress if currentValue changed
     if (goal.targetValue && goal.currentValue !== undefined) {

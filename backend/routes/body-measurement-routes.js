@@ -3,8 +3,21 @@ const router = express.Router();
 import asyncHandler from "../middleware/async-handler.js";
 import BodyMeasurement from "../models/body-measurement-model.js";
 import { protect } from "../middleware/auth-middleware.js";
+import pickFields from "../utils/pick-fields.js";
 
 router.use(protect);
+
+// previousValue, change and changePercent are calculated on save
+const EDITABLE_FIELDS = [
+  "measurementType",
+  "value",
+  "unit",
+  "measuredDate",
+  "timeOfDay",
+  "conditions",
+  "notes",
+  "photoUrl",
+];
 
 // @desc Add body measurement
 // @route POST /api/body-measurements
@@ -13,7 +26,7 @@ router.post(
   "/",
   asyncHandler(async (req, res) => {
     const measurement = await BodyMeasurement.create({
-      ...req.body,
+      ...pickFields(req.body, EDITABLE_FIELDS),
       user: req.user._id,
     });
 
@@ -86,7 +99,7 @@ router.put(
       throw new Error("Not authorized to update this measurement");
     }
 
-    Object.assign(measurement, req.body);
+    Object.assign(measurement, pickFields(req.body, EDITABLE_FIELDS));
     await measurement.save();
 
     res.json(measurement);

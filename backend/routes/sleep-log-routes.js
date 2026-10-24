@@ -3,8 +3,12 @@ const router = express.Router();
 import asyncHandler from "../middleware/async-handler.js";
 import SleepLog from "../models/sleep-log-model.js";
 import { protect } from "../middleware/auth-middleware.js";
+import pickFields from "../utils/pick-fields.js";
 
 router.use(protect);
+
+// durationMinutes is calculated on save
+const EDITABLE_FIELDS = ["date", "bedTime", "wakeTime", "quality", "notes"];
 
 // @desc Log sleep
 // @route POST /api/sleep-logs
@@ -12,7 +16,10 @@ router.use(protect);
 router.post(
   "/",
   asyncHandler(async (req, res) => {
-    const log = await SleepLog.create({ ...req.body, user: req.user._id });
+    const log = await SleepLog.create({
+      ...pickFields(req.body, EDITABLE_FIELDS),
+      user: req.user._id,
+    });
     res.status(201).json(log);
   })
 );
@@ -78,7 +85,7 @@ router.put(
       throw new Error("Not authorized");
     }
 
-    Object.assign(log, req.body);
+    Object.assign(log, pickFields(req.body, EDITABLE_FIELDS));
     await log.save();
     res.json(log);
   })

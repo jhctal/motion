@@ -14,7 +14,10 @@ export interface SleepLog {
   updatedAt: string;
 }
 
-export type CreateSleepLog = Omit<SleepLog, "_id" | "user" | "durationMinutes" | "createdAt" | "updatedAt">;
+export type CreateSleepLog = Omit<
+  SleepLog,
+  "_id" | "user" | "durationMinutes" | "createdAt" | "updatedAt"
+>;
 
 export const useSleepLogs = (params?: {
   startDate?: string;
@@ -36,6 +39,20 @@ export const useCreateSleepLog = () => {
   return useMutation({
     mutationFn: async (data: CreateSleepLog) => {
       const response = await axios.post("/api/sleep-logs", data);
+      return response.data as SleepLog;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sleep-logs"] });
+    },
+  });
+};
+
+export const useUpdateSleepLog = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...data }: CreateSleepLog & { id: string }) => {
+      const response = await axios.put(`/api/sleep-logs/${id}`, data);
       return response.data as SleepLog;
     },
     onSuccess: () => {

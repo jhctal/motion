@@ -1,6 +1,17 @@
 import asyncHandler from "../middleware/async-handler.js";
 import User from "../models/user-model.js";
 import generateToken from "../utils/generate-token.js";
+import pickFields from "../utils/pick-fields.js";
+
+const PREFERENCE_FIELDS = [
+  "units",
+  "measurement_system",
+  "theme",
+  "language",
+  "week_starts_on",
+  "height_unit",
+  "orm_formula",
+];
 
 // @desc Auth user and get token
 // @route POST /api/users/login
@@ -164,7 +175,7 @@ const updateUserPreferences = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("User not found");
   }
-  Object.assign(user.preferences, req.body);
+  Object.assign(user.preferences, pickFields(req.body, PREFERENCE_FIELDS));
   const updatedUser = await user.save();
   res.status(200).json(updatedUser.preferences);
 });

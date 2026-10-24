@@ -3,8 +3,20 @@ const router = express.Router();
 import asyncHandler from "../middleware/async-handler.js";
 import NutritionLog from "../models/nutrition-log-model.js";
 import { protect } from "../middleware/auth-middleware.js";
+import pickFields from "../utils/pick-fields.js";
 
 router.use(protect);
+
+const EDITABLE_FIELDS = [
+  "date",
+  "calories",
+  "protein",
+  "carbs",
+  "fat",
+  "notes",
+  "label",
+  "category",
+];
 
 // @desc Log nutrition
 // @route POST /api/nutrition-logs
@@ -12,7 +24,10 @@ router.use(protect);
 router.post(
   "/",
   asyncHandler(async (req, res) => {
-    const log = await NutritionLog.create({ ...req.body, user: req.user._id });
+    const log = await NutritionLog.create({
+      ...pickFields(req.body, EDITABLE_FIELDS),
+      user: req.user._id,
+    });
     res.status(201).json(log);
   })
 );
@@ -78,7 +93,7 @@ router.put(
       throw new Error("Not authorized");
     }
 
-    Object.assign(log, req.body);
+    Object.assign(log, pickFields(req.body, EDITABLE_FIELDS));
     await log.save();
     res.json(log);
   })

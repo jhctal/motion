@@ -111,86 +111,90 @@ export function WorkoutFrequencyWidget() {
       {isLoading ? (
         <Skeleton className="h-56 w-full" />
       ) : (
-        <div className="flex flex-col sm:flex-row gap-6">
-          <div className="w-full sm:max-w-72 flex flex-col gap-2">
-            <div className="grid grid-cols-7 gap-0.5">
-              {WEEKDAY_LABELS.map((label, i) => (
-                <span
-                  key={i}
-                  aria-hidden="true"
-                  className="pb-1 text-center text-[10px] font-medium text-gray-400 dark:text-gray-500"
-                >
-                  {label}
-                </span>
-              ))}
-              {monthCells(year, month).map(({ date, inMonth }, i) => {
-                if (!inMonth) return <span key={i} aria-hidden="true" />;
-
-                const key = toDayKey(date);
-                const isFuture = key > todayKey;
-                const isToday = key === todayKey;
-                return (
-                  <div
-                    key={i}
-                    role="img"
-                    tabIndex={isFuture ? -1 : 0}
-                    aria-label={isFuture ? undefined : describe(date)}
-                    onMouseEnter={() => !isFuture && setHovered(date)}
-                    onMouseLeave={() => setHovered(null)}
-                    onFocus={() => setHovered(date)}
-                    onBlur={() => setHovered(null)}
-                    className={cn(
-                      "aspect-square grid place-items-center rounded-sm text-[11px] font-medium tabular-nums outline-none transition-[filter]",
-                      isFuture
-                        ? "text-gray-300 dark:text-zinc-700"
-                        : cn(
-                            stepFor(counts.get(key) ?? 0).cell,
-                            "hover:brightness-95 dark:hover:brightness-125 focus-visible:ring-2 focus-visible:ring-orange-500",
-                          ),
-                      isToday &&
-                        "ring-2 ring-gray-900/70 ring-inset dark:ring-white/70",
+        // laid out by the card's own width, not the screen's, so it works
+        // in a narrow dashboard column as well as a wide one
+        <div className="@container">
+          <div className="flex flex-col @lg:flex-row gap-6">
+            {/* stats above the calendar; beside it on the right when wide */}
+            <dl className="flex-1 grid grid-cols-3 @lg:grid-cols-1 @lg:order-last content-start gap-3">
+              {summary.map((stat) => (
+                <div key={stat.label}>
+                  <dt className="text-xs text-gray-500 dark:text-gray-400">
+                    {stat.label}
+                  </dt>
+                  <dd className="text-xl font-semibold tabular-nums text-gray-900 dark:text-white">
+                    {typeof stat.value === "number" ? (
+                      <CountUp value={stat.value} />
+                    ) : (
+                      stat.value
                     )}
-                  >
-                    {date.getDate()}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="flex items-center justify-between gap-2 text-[11px] text-gray-500 dark:text-gray-400">
-              <span aria-live="polite" className="tabular-nums">
-                {hovered ? describe(hovered) : "Hover a day for details"}
-              </span>
-              <span className="flex items-center gap-1 shrink-0">
-                Less
-                {STEPS.map((step) => (
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <div className="w-full @lg:max-w-72 flex flex-col gap-2">
+              <div className="grid grid-cols-7 gap-0.5">
+                {WEEKDAY_LABELS.map((label, i) => (
                   <span
-                    key={step.label}
-                    title={step.label}
-                    className={cn("size-2.5 rounded-[3px]", step.cell)}
-                  />
+                    key={i}
+                    aria-hidden="true"
+                    className="pb-1 text-center text-[10px] font-medium text-gray-400 dark:text-gray-500"
+                  >
+                    {label}
+                  </span>
                 ))}
-                More
-              </span>
+                {monthCells(year, month).map(({ date, inMonth }, i) => {
+                  if (!inMonth) return <span key={i} aria-hidden="true" />;
+
+                  const key = toDayKey(date);
+                  const isFuture = key > todayKey;
+                  const isToday = key === todayKey;
+                  return (
+                    <div
+                      key={i}
+                      role="img"
+                      tabIndex={isFuture ? -1 : 0}
+                      aria-label={isFuture ? undefined : describe(date)}
+                      onMouseEnter={() => !isFuture && setHovered(date)}
+                      onMouseLeave={() => setHovered(null)}
+                      onFocus={() => setHovered(date)}
+                      onBlur={() => setHovered(null)}
+                      className={cn(
+                        "aspect-square grid place-items-center rounded-sm text-[11px] font-medium tabular-nums outline-none transition-[filter]",
+                        isFuture
+                          ? "text-gray-300 dark:text-zinc-700"
+                          : cn(
+                              stepFor(counts.get(key) ?? 0).cell,
+                              "hover:brightness-95 dark:hover:brightness-125 focus-visible:ring-2 focus-visible:ring-orange-500",
+                            ),
+                        isToday &&
+                          "ring-2 ring-gray-900/70 ring-inset dark:ring-white/70",
+                      )}
+                    >
+                      {date.getDate()}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center justify-between gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+                <span aria-live="polite" className="tabular-nums">
+                  {hovered ? describe(hovered) : "Hover a day for details"}
+                </span>
+                <span className="flex items-center gap-1 shrink-0">
+                  Less
+                  {STEPS.map((step) => (
+                    <span
+                      key={step.label}
+                      title={step.label}
+                      className={cn("size-2.5 rounded-[3px]", step.cell)}
+                    />
+                  ))}
+                  More
+                </span>
+              </div>
             </div>
           </div>
-
-          <dl className="flex-1 grid grid-cols-3 sm:grid-cols-1 content-start gap-3">
-            {summary.map((stat) => (
-              <div key={stat.label}>
-                <dt className="text-xs text-gray-500 dark:text-gray-400">
-                  {stat.label}
-                </dt>
-                <dd className="text-xl font-semibold tabular-nums text-gray-900 dark:text-white">
-                  {typeof stat.value === "number" ? (
-                    <CountUp value={stat.value} />
-                  ) : (
-                    stat.value
-                  )}
-                </dd>
-              </div>
-            ))}
-          </dl>
         </div>
       )}
     </WidgetCard>

@@ -150,13 +150,184 @@
   animation: auth-hint 2.4s ease-in-out infinite;
 }
 
+/* Sleep page artwork (SleepyArt): Zs drift up and to the right while
+   growing and fading, stars twinkle, the moon bobs gently. transform-box
+   makes each SVG shape scale and rotate around its own centre. */
+@keyframes sleep-z {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5) rotate(-12deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(22px, -40px) scale(1.15) rotate(12deg);
+  }
+}
+
+@keyframes sleep-twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes sleep-moon {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(-3deg);
+  }
+}
+
+.sleep-z,
+.sleep-twinkle,
+.sleep-moon {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.sleep-z {
+  animation: sleep-z 6s ease-in-out infinite;
+}
+
+.sleep-twinkle {
+  animation: sleep-twinkle 2.8s ease-in-out infinite;
+}
+
+.sleep-moon {
+  animation: sleep-moon 6s ease-in-out infinite;
+}
+
+/* Dashboard artwork (LiftArtWidget): the dumbbell rises and holds at the
+   top while its shadow shrinks and effort lines appear, on one shared
+   2.8s beat so the parts stay in step */
+@keyframes lift-up {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  45%,
+  60% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes lift-shadow {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  45%,
+  60% {
+    opacity: 0.5;
+    transform: scaleX(0.7);
+  }
+}
+
+@keyframes lift-lines {
+  0%,
+  25%,
+  80%,
+  100% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  45%,
+  60% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lift-up,
+.lift-shadow,
+.lift-lines,
+.lift-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.lift-up {
+  animation: lift-up 2.8s ease-in-out infinite;
+}
+
+.lift-shadow {
+  animation: lift-shadow 2.8s ease-in-out infinite;
+}
+
+.lift-lines {
+  animation: lift-lines 2.8s ease-in-out infinite;
+}
+
+.lift-spin {
+  animation: auth-spin 40s linear infinite;
+}
+
+/* Dashboard scale artwork (ScaleArtWidget): someone steps on, the needle
+   swings past, wobbles and settles, holds, then drops back as they step
+   off. It pivots on the dial hub, a fixed point in the SVG's viewBox. */
+@keyframes scale-needle {
+  0% {
+    transform: rotate(-58deg);
+  }
+  14% {
+    transform: rotate(38deg);
+  }
+  24% {
+    transform: rotate(-10deg);
+  }
+  33% {
+    transform: rotate(14deg);
+  }
+  41%,
+  82% {
+    transform: rotate(6deg);
+  }
+  100% {
+    transform: rotate(-58deg);
+  }
+}
+
+.scale-needle {
+  transform-box: view-box;
+  transform-origin: 120px 96px;
+  animation: scale-needle 5s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .count-up,
   .auth-hint,
   .exercise-loop,
   .auth-blob,
   .auth-dots,
-  .auth-ring {
+  .auth-ring,
+  .sleep-z,
+  .sleep-twinkle,
+  .sleep-moon,
+  .lift-up,
+  .lift-shadow,
+  .lift-spin,
+  .scale-needle {
     animation: none;
+  }
+
+  /* effort lines only make sense mid-lift */
+  .lift-lines {
+    animation: none;
+    opacity: 0;
   }
 }

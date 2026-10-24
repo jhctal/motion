@@ -147,24 +147,28 @@ function TrendChart({ points, unit }: { points: Point[]; unit: string }) {
         </span>
       </div>
 
-      {/* Same data for screen readers */}
-      <table className="sr-only">
-        <caption>Weight entries</caption>
-        <thead>
-          <tr>
-            <th scope="col">Date</th>
-            <th scope="col">Weight ({unit})</th>
-          </tr>
-        </thead>
-        <tbody>
-          {points.map((p) => (
-            <tr key={p.date.toISOString()}>
-              <td>{formatDate(p.date)}</td>
-              <td>{p.value}</td>
+      {/* Same data for screen readers. sr-only goes on a wrapper: tables
+          ignore overflow, so on the <table> itself the rows still take up
+          space and stretch the page. */}
+      <div className="sr-only">
+        <table>
+          <caption>Weight entries</caption>
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Weight ({unit})</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {points.map((p) => (
+              <tr key={p.date.toISOString()}>
+                <td>{formatDate(p.date)}</td>
+                <td>{p.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
