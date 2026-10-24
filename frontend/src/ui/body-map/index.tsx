@@ -190,6 +190,8 @@ type BodyMapProps = {
   // Lower-case muscle name → when it was last trained
   recent: Map<string, Date>;
   className?: string;
+  // Hide the workout/recovery key where it doesn't apply
+  showLegend?: boolean;
 };
 
 function Figure({
@@ -263,22 +265,29 @@ function Figure({
   );
 }
 
-const BodyMap = ({ worked, recent, className }: BodyMapProps) => (
+const BodyMap = ({
+  worked,
+  recent,
+  className,
+  showLegend = true,
+}: BodyMapProps) => (
   <div className={cn("flex flex-col gap-2", className)}>
     <div className="grid grid-cols-2 gap-2">
       <Figure label="Front" regions={FRONT} worked={worked} recent={recent} />
       <Figure label="Back" regions={BACK} worked={worked} recent={recent} />
     </div>
-    <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] text-gray-500 dark:text-gray-400">
-      <span className="flex items-center gap-1.5">
-        <span className="size-2.5 rounded-sm bg-orange-400" />
-        In this workout
-      </span>
-      <span className="flex items-center gap-1.5">
-        <span className="size-2.5 rounded-sm border-[1.5px] border-dashed border-amber-500" />
-        Trained in last {RECOVERY_HOURS}h
-      </span>
-    </div>
+    {showLegend && (
+      <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] text-gray-500 dark:text-gray-400">
+        <span className="flex items-center gap-1.5">
+          <span className="size-2.5 rounded-sm bg-orange-400" />
+          In this workout
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-2.5 rounded-sm border-[1.5px] border-dashed border-amber-500" />
+          Trained in last {RECOVERY_HOURS}h
+        </span>
+      </div>
+    )}
   </div>
 );
 
