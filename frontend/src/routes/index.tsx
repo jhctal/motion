@@ -7,6 +7,8 @@ import { WorkoutFrequencyWidget } from "#ui/widgets/workout-frequency-widget";
 import { WeightTrendWidget } from "#ui/widgets/weight-trend-widget";
 import { TotalLiftedWidget } from "#ui/widgets/total-lifted-widget";
 import { TotalWorkoutsWidget } from "#ui/widgets/total-workouts-widget";
+import { LiftArtWidget } from "#ui/widgets/lift-art-widget";
+import { ScaleArtWidget } from "#ui/widgets/scale-art-widget";
 
 export const Route = createFileRoute("/")({
   beforeLoad: async ({ location }) => {
@@ -36,11 +38,17 @@ function Homepage() {
         </div>
 
         <LastWorkoutWidget />
-        <div className="lg:col-span-2">
-          <WorkoutFrequencyWidget />
+        <WorkoutFrequencyWidget />
+        {/* decorative, so it gives way on phones; full width on tablets */}
+        <div className="hidden md:block md:col-span-2 lg:col-span-1">
+          <LiftArtWidget />
         </div>
 
-        <div className="md:col-span-2 lg:col-span-3">
+        {/* decorative; only on desktop, where weight takes the other two */}
+        <div className="hidden lg:block">
+          <ScaleArtWidget />
+        </div>
+        <div className="md:col-span-2">
           <WeightTrendWidget />
         </div>
       </div>
