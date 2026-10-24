@@ -40,7 +40,7 @@ const getWorkoutById = asyncHandler(async (req, res) => {
   })
     .populate(
       "exercise",
-      "name category difficulty mainTargetMuscle muscleGroups equipmentNeeded isCompound image"
+      "name category difficulty mainTargetMuscle muscleGroups equipmentNeeded isCompound image images"
     )
     .sort({ orderIndex: 1 });
 
@@ -123,7 +123,7 @@ const updateWorkout = asyncHandler(async (req, res) => {
   await workout.save();
 
   const exercises = await TemplateExercise.find({ workoutTemplate: workout._id })
-    .populate("exercise", "name category difficulty mainTargetMuscle muscleGroups equipmentNeeded isCompound image")
+    .populate("exercise", "name category difficulty mainTargetMuscle muscleGroups equipmentNeeded isCompound image images")
     .sort({ orderIndex: 1 });
 
   res.json({ ...workout.toObject(), exercises });
