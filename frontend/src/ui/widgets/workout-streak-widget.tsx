@@ -1,4 +1,8 @@
+import { FlameIcon } from "lucide-react";
 import { useWorkoutSessions } from "../../api/workouts/use-workout-sessions";
+import cn from "../../utils/cn";
+import { formatDate } from "../../utils/format-date";
+import { StatSkeleton, StatValue, WidgetCard } from "./widget-card";
 
 // Max days allowed between workouts before the streak resets.
 // Covers common plans like every-other-day (1 rest day) up to 2x/week (3 rest days).
@@ -47,17 +51,29 @@ function computeStreak(sessions: { startedAt: string }[]) {
   return streak;
 }
 
-function FlameIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={className}
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M12.5 1.5c.6 2.5-.4 4-1.7 5.4C9.3 8.2 8 9.7 8 12a4 4 0 004 4c1.7 0 2.5-1 2.8-1.8.3-.8.1-1.7-.3-2.2 1.6.7 2.5 2.3 2.5 4a5 5 0 01-5 5 6.5 6.5 0 01-6.5-6.5c0-2.6 1.2-4.3 2.6-5.9C9.6 6.7 11.3 4.8 12.5 1.5z" />
-    </svg>
+const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
+
+// Which days of the current Monday-start week had a workout
+function thisWeek(sessions: { startedAt: string }[]) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+
+  const trained = new Set(
+    sessions.map((s) => new Date(s.startedAt).toDateString()),
   );
+  return WEEKDAYS.map((label, i) => {
+    const day = new Date(monday);
+    day.setDate(monday.getDate() + i);
+    return {
+      label,
+      date: day,
+      trained: trained.has(day.toDateString()),
+      isToday: day.getTime() === today.getTime(),
+      isFuture: day > today,
+    };
+  });
 }
 
 export function WorkoutStreakWidget() {
@@ -69,30 +85,59 @@ export function WorkoutStreakWidget() {
   });
   const sessions = data?.workoutSessions ?? [];
   const streak = computeStreak(sessions);
+  const week = thisWeek(sessions);
 
   return (
-    <div className="border rounded-lg p-4 flex flex-col gap-3 h-full">
-      <p className="text-xs text-gray-400 dark:text-gray-300 uppercase tracking-wide">
-        Streak
-      </p>
+    <WidgetCard title="Streak" icon={FlameIcon}>
       {isLoading ? (
-        <p className="text-sm text-gray-500">Loading…</p>
+        <StatSkeleton />
       ) : (
-        <div className="flex items-center gap-4">
-          <FlameIcon className="w-10 h-auto text-orange-400 shrink-0" />
-          <div>
-            <p className="text-3xl font-bold leading-none">
-              {streak}
-              <span className="text-lg font-normal text-gray-400 dark:text-gray-300 ml-1">
-                day{streak !== 1 ? "s" : ""}
-              </span>
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              {streak > 0 ? "Keep it going" : "Log a workout to start a streak"}
-            </p>
-          </div>
+        <div className="mt-auto flex items-end justify-between gap-4">
+          <StatValue
+            value={streak}
+            unit={streak === 1 ? "workout" : "workouts"}
+            detail={
+              streak > 0
+                ? `No more than ${GAP_THRESHOLD_DAYS} days between sessions`
+                : "Log a workout to start a streak"
+            }
+          />
+          {/* This week at a glance */}
+          <ol className="flex gap-1 shrink-0" aria-label="This week">
+            {week.map((day, i) => (
+              <li key={i} className="flex flex-col items-center gap-1">
+                <span
+                  className={cn(
+                    "size-4 rounded-full",
+                    day.trained
+                      ? "bg-orange-500"
+                      : day.isFuture
+                        ? "border border-dashed border-gray-300 dark:border-zinc-700"
+                        : "bg-gray-100 dark:bg-zinc-800",
+                    day.isToday &&
+                      "ring-2 ring-orange-500/40 ring-offset-1 ring-offset-white dark:ring-offset-zinc-900",
+                  )}
+                  title={`${formatDate(day.date, { weekday: "long" })}: ${day.trained ? "trained" : "rest"}`}
+                />
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "text-[10px] text-gray-400 dark:text-gray-500",
+                    day.isToday &&
+                      "font-semibold text-gray-700 dark:text-gray-200",
+                  )}
+                >
+                  {day.label}
+                </span>
+                <span className="sr-only">
+                  {formatDate(day.date, { weekday: "long" })}:{" "}
+                  {day.trained ? "trained" : "no workout"}
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
       )}
-    </div>
+    </WidgetCard>
   );
 }

@@ -188,6 +188,7 @@ const TopBar = ({ onMenuOpen }: TopBarProps) => {
         description="You'll need to sign in again to access your account."
         confirmLabel="Log out"
         destructive
+        icon={LogOutIcon}
         isPending={isLoggingOut}
       />
     </header>

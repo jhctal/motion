@@ -14,7 +14,7 @@ function RootLayout() {
 
   if (isAuthPage) {
     return (
-      <div className="h-dvh bg-white text-black dark:bg-zinc-800 dark:text-white">
+      <div className="min-h-dvh text-gray-900 dark:text-white">
         <Outlet />
         <ThemeIconToggle
           theme={theme}
