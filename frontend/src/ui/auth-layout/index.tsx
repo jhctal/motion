@@ -35,15 +35,17 @@ export function AuthLayout({
     <div className="min-h-dvh grid lg:grid-cols-2 bg-white dark:bg-zinc-900">
       {/* Brand panel */}
       <aside className="relative hidden lg:flex flex-col justify-between overflow-hidden p-12 bg-gradient-to-br from-orange-500 via-orange-500 to-orange-700 text-white">
-        {/* soft shapes for depth */}
-        <div
-          aria-hidden="true"
-          className="absolute -right-24 -top-24 size-96 rounded-full bg-white/10 blur-2xl"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute -bottom-32 -left-16 size-96 rounded-full bg-orange-900/30 blur-3xl"
-        />
+        {/* animated background: drifting blobs, a panning dot grid and
+            slow rings, all in lighter shades of the orange */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <div className="auth-blob auth-blob-a absolute -right-24 -top-24 size-96 rounded-full bg-orange-300/40 blur-3xl" />
+          <div className="auth-blob auth-blob-b absolute top-1/3 -left-32 size-[28rem] rounded-full bg-amber-200/25 blur-3xl" />
+          <div className="auth-blob auth-blob-c absolute -bottom-32 right-1/4 size-96 rounded-full bg-orange-200/30 blur-3xl" />
+          <div className="auth-dots absolute inset-0 text-orange-100/25" />
+          <div className="auth-ring absolute -right-40 top-1/4 size-[32rem] rounded-full border border-orange-100/20" />
+          <div className="auth-ring auth-ring-reverse absolute -right-20 top-1/3 size-80 rounded-full border border-dashed border-orange-100/25" />
+          <div className="auth-ring absolute -bottom-48 -left-24 size-[26rem] rounded-full border border-orange-100/15" />
+        </div>
 
         <div className="relative flex items-center gap-3">
           <img
