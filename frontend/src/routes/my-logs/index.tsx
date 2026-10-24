@@ -1,9 +1,21 @@
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
-  createFileRoute,
-  Link,
-  redirect,
-  useNavigate,
-} from "@tanstack/react-router";
+  ChevronRightIcon,
+  CircleCheckIcon,
+  CircleDashedIcon,
+  CirclePlayIcon,
+  CircleSlashIcon,
+  ClockIcon,
+  DownloadIcon,
+  DumbbellIcon,
+  LayersIcon,
+  ListIcon,
+  PlusIcon,
+  StarIcon,
+  Trash2Icon,
+  UploadIcon,
+  XIcon,
+} from "lucide-react";
 import { useRef, useState } from "react";
 import useListLogs, {
   WorkoutSession,
@@ -11,7 +23,15 @@ import useListLogs, {
 import { useDeleteLog } from "../../api/logged-workouts/use-delete-log";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
 import cn from "../../utils/cn";
-import { formatSessionTitle } from "../../utils/format-date";
+import {
+  formatCompact,
+  formatDate,
+  formatDuration,
+  formatSessionTitle,
+} from "../../utils/format-date";
+import MuscleTag from "../../ui/muscle-tag";
+import ConfirmModal from "../../ui/modal/confirm-modal";
+import { Skeleton } from "../../ui/widgets/widget-card";
 import Button from "../../ui/button/button";
 import ExportLogsModal from "../../ui/export-logs-modal";
 import useImportLogs from "../../api/logged-workouts/use-import-logs";
@@ -28,69 +48,148 @@ export const Route = createFileRoute("/my-logs/")({
 });
 
 function RouteComponent() {
-  const goTo = useNavigate();
-  const { data } = useListLogs();
+  const { data, isLoading } = useListLogs();
   const remove = useDeleteLog();
   const [exportOpen, setExportOpen] = useState(false);
   const [pendingImport, setPendingImport] = useState<ImportedSession[] | null>(
     null,
   );
   const [importError, setImportError] = useState<string | null>(null);
+  const [toDelete, setToDelete] = useState<WorkoutSession | null>(null);
+
+  const sessions = data?.workoutSessions ?? [];
+  const months = groupByMonth(sessions);
 
   return (
-    <PageWrapper pageName="Your Workouts">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-3 mt-2">
-        <span className="text-sm text-gray-400 dark:text-gray-300">
-          {data?.workoutSessions.length ?? 0} sessions
-        </span>
-        <div className="flex flex-wrap items-center gap-2">
-          <ImportButton
-            onFileRead={setPendingImport}
-            onError={setImportError}
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setExportOpen(true)}
+    <PageWrapper pageName="Your workouts">
+      <div className="flex flex-col gap-6 mt-1">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {sessions.length} {sessions.length === 1 ? "workout" : "workouts"}{" "}
+            logged
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <ImportButton
+              onFileRead={setPendingImport}
+              onError={setImportError}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setExportOpen(true)}
+            >
+              <DownloadIcon size={14} aria-hidden="true" />
+              Export
+            </Button>
+            <Link to="/my-logs/new">
+              <Button size="sm" className="gap-1.5">
+                <PlusIcon size={14} aria-hidden="true" />
+                Log workout
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {importError && (
+          <div
+            role="alert"
+            className="flex items-start justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
           >
-            Export
-          </Button>
-          <Button onClick={() => goTo({ to: "/my-logs/new" })}>
-            + Log workout
-          </Button>
-        </div>
-      </div>
-      {importError && (
-        <div className="mb-3 p-3 border border-red-500 rounded text-sm text-red-500 flex justify-between gap-2">
-          {importError}
-          <button onClick={() => setImportError(null)} aria-label="Dismiss">
-            ✕
-          </button>
-        </div>
-      )}
-      {pendingImport && (
-        <ImportPanel
-          sessions={pendingImport}
-          onClose={() => setPendingImport(null)}
-        />
-      )}
-      <ExportLogsModal open={exportOpen} onClose={() => setExportOpen(false)} />
-      <div className="flex flex-col gap-2">
-        {data?.workoutSessions.map((session) => (
-          <SessionCard
-            key={session._id}
-            session={session}
-            onDelete={() => {
-              if (confirm(`Delete "${session.name}"?`)) {
-                remove.mutate(session._id);
-              }
-            }}
-            isDeleting={remove.isPending}
+            {importError}
+            <button
+              type="button"
+              onClick={() => setImportError(null)}
+              aria-label="Dismiss"
+              className="shrink-0"
+            >
+              <XIcon size={16} />
+            </button>
+          </div>
+        )}
+        {pendingImport && (
+          <ImportPanel
+            sessions={pendingImport}
+            onClose={() => setPendingImport(null)}
           />
-        ))}
+        )}
+
+        {isLoading ? (
+          <div className="flex flex-col gap-3">
+            {Array.from({ length: 4 }, (_, i) => (
+              <Skeleton key={i} className="h-24 rounded-xl" />
+            ))}
+          </div>
+        ) : sessions.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-gray-300 py-14 text-center dark:border-zinc-700">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              No workouts logged yet
+            </p>
+            <Link to="/my-logs/new">
+              <Button size="sm">Log your first workout</Button>
+            </Link>
+          </div>
+        ) : (
+          months.map(({ label, items }) => (
+            <section key={label} className="flex flex-col gap-3">
+              <h2 className="flex items-baseline gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+                {label}
+                <span className="text-xs font-normal text-gray-400">
+                  {items.length} {items.length === 1 ? "workout" : "workouts"}
+                </span>
+              </h2>
+              <ul className="flex flex-col gap-2">
+                {items.map((session) => (
+                  <li key={session._id} className="min-w-0">
+                    <SessionCard
+                      session={session}
+                      onDelete={() => setToDelete(session)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))
+        )}
       </div>
+
+      <ExportLogsModal open={exportOpen} onClose={() => setExportOpen(false)} />
+      <ConfirmModal
+        open={toDelete !== null}
+        onClose={() => setToDelete(null)}
+        onConfirm={() => {
+          if (toDelete) {
+            remove.mutate(toDelete._id, { onSuccess: () => setToDelete(null) });
+          }
+        }}
+        title="Delete this workout?"
+        description={
+          toDelete
+            ? `"${formatSessionTitle(toDelete)}" and all its sets will be permanently removed.`
+            : undefined
+        }
+        confirmLabel="Delete workout"
+        destructive
+        icon={Trash2Icon}
+        isPending={remove.isPending}
+      />
     </PageWrapper>
   );
+}
+
+// Newest first, as the API returns them, split into calendar months
+function groupByMonth(sessions: WorkoutSession[]) {
+  const months: { label: string; items: WorkoutSession[] }[] = [];
+  for (const session of sessions) {
+    const label = formatDate(session.startedAt ?? session.createdAt, {
+      month: "long",
+      year: "numeric",
+    });
+    const last = months[months.length - 1];
+    if (last?.label === label) last.items.push(session);
+    else months.push({ label, items: [session] });
+  }
+  return months;
 }
 
 function ImportButton({
@@ -129,7 +228,9 @@ function ImportButton({
         variant="outline"
         size="sm"
         onClick={() => inputRef.current?.click()}
+        className="gap-1.5"
       >
+        <UploadIcon size={14} aria-hidden="true" />
         Import
       </Button>
     </>
@@ -151,7 +252,7 @@ function ImportPanel({
   );
 
   return (
-    <div className="mb-3 p-3 border rounded text-sm flex flex-col gap-2">
+    <div className="flex flex-col gap-2 rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
       {!result ? (
         <>
           <p>
@@ -218,118 +319,160 @@ function ImportPanel({
   );
 }
 
-function StatusBadge({
-  className,
-  status,
-}: {
-  className?: string;
-  status: string;
-}) {
-  const colours: Record<string, string> = {
-    completed: "bg-green-600 text-white",
-    "in-progress": "bg-orange-500 text-white",
-    planned: "bg-gray-700 text-gray-300",
-  };
-  const cls = colours[status] ?? "bg-gray-700 text-gray-300";
-  return (
-    <span className={cn(`text-xs px-1.5 py-0.5 rounded ${cls}`, className)}>
-      {status}
-    </span>
-  );
-}
-function MiniStatusBadge({
-  className,
-  status,
-}: {
-  className?: string;
-  status: string;
-}) {
-  const colours: Record<string, string> = {
-    completed: "bg-green-600 text-white",
-    "in-progress": "bg-orange-500 text-white",
-    planned: "bg-gray-700 text-gray-300",
-  };
-  const cls = colours[status] ?? "bg-gray-700 text-gray-300";
-  return (
-    <span
-      className={cn(
-        `text-xs p-1 size-6 text-center rounded-full ${cls}`,
-        className,
-      )}
-    >
-      {status.charAt(0)}
-    </span>
-  );
-}
+const STATUS = {
+  completed: {
+    label: "Completed",
+    icon: CircleCheckIcon,
+    tile: "bg-green-50 text-green-600 dark:bg-green-500/15 dark:text-green-400",
+    badge:
+      "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/30",
+  },
+  "in-progress": {
+    label: "In progress",
+    icon: CirclePlayIcon,
+    tile: "bg-orange-50 text-orange-500 dark:bg-orange-500/15 dark:text-orange-400",
+    badge:
+      "bg-orange-50 text-orange-700 ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-300 dark:ring-orange-500/30",
+  },
+  planned: {
+    label: "Planned",
+    icon: CircleDashedIcon,
+    tile: "bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-gray-400",
+    badge:
+      "bg-gray-50 text-gray-600 ring-gray-500/20 dark:bg-zinc-800 dark:text-gray-300 dark:ring-zinc-600",
+  },
+  skipped: {
+    label: "Skipped",
+    icon: CircleSlashIcon,
+    tile: "bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-gray-400",
+    badge:
+      "bg-gray-50 text-gray-600 ring-gray-500/20 dark:bg-zinc-800 dark:text-gray-300 dark:ring-zinc-600",
+  },
+} as const;
+
+const statusOf = (status: string) =>
+  STATUS[status as keyof typeof STATUS] ?? STATUS.planned;
 
 function SessionCard({
   session,
   onDelete,
-  isDeleting,
 }: {
   session: WorkoutSession;
   onDelete: () => void;
-  isDeleting: boolean;
 }) {
-  const [confirming, setConfirming] = useState(false);
+  const status = statusOf(session.status);
+  const StatusIcon = status.icon;
+  const isCompleted = session.status === "completed";
+
+  const allSets = session.exercises.flatMap((ex) => ex.sets ?? []);
+  const doneSets = allSets.filter((set) => set.completed).length;
+
+  const muscles = [
+    ...new Set(
+      session.exercises
+        .map((ex) => ex.exercise?.mainTargetMuscle)
+        .filter((m): m is string => !!m),
+    ),
+  ];
+
+  const stats = [
+    isCompleted && session.duration > 0
+      ? { icon: ClockIcon, text: formatDuration(session.duration) }
+      : null,
+    allSets.length > 0
+      ? {
+          icon: LayersIcon,
+          text: isCompleted
+            ? `${doneSets} sets`
+            : `${doneSets}/${allSets.length} sets`,
+        }
+      : null,
+    session.totalWeight > 0
+      ? { icon: DumbbellIcon, text: `${formatCompact(session.totalWeight)} kg` }
+      : null,
+    session.exercises.length > 0
+      ? {
+          icon: ListIcon,
+          text: `${session.exercises.length} ${session.exercises.length === 1 ? "exercise" : "exercises"}`,
+        }
+      : null,
+    session.rating ? { icon: StarIcon, text: `${session.rating}/5` } : null,
+  ].filter((s): s is NonNullable<typeof s> => s !== null);
 
   return (
-    <div className="border rounded flex items-stretch py-2 pr-2">
+    <div className="group flex items-stretch rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:border-orange-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-orange-500/50">
       <Link
         to="/my-logs/$id"
         params={{ id: session._id }}
-        className="flex-1 p-3 min-w-0"
+        className="flex-1 min-w-0 flex gap-4 p-4"
       >
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mb-0.5">
-          <span className="font-medium text-lg md:text-sm capitalize flex items-center gap-1">
-            {formatSessionTitle(session)}
-            <MiniStatusBadge
-              className="block md:hidden"
-              status={session.status}
-            />
-          </span>
-          <StatusBadge className="hidden md:block" status={session.status} />
-        </div>
-        <div className="text-xs text-gray-400 dark:text-gray-300 flex gap-3">
-          {session.exercises.length > 0 && (
-            <span className="hidden md:block">
-              {session.exercises.length} exercises
+        <span
+          className={cn(
+            "size-10 shrink-0 grid place-items-center rounded-lg",
+            status.tile,
+          )}
+        >
+          <StatusIcon size={20} aria-hidden="true" />
+        </span>
+
+        <div className="flex-1 min-w-0 flex flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
+            <h3 className="min-w-0 truncate font-semibold capitalize text-gray-900 transition-colors group-hover:text-orange-600 dark:text-white dark:group-hover:text-orange-400">
+              {formatSessionTitle(session)}
+            </h3>
+            <span
+              className={cn(
+                "shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset",
+                status.badge,
+              )}
+            >
+              {status.label}
             </span>
+          </div>
+
+          {muscles.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1">
+              {muscles.slice(0, 4).map((m) => (
+                <MuscleTag key={m} muscle={m} />
+              ))}
+              {muscles.length > 4 && (
+                <span className="text-xs text-gray-400">
+                  +{muscles.length - 4}
+                </span>
+              )}
+            </div>
           )}
-          {session.totalSets > 0 && (
-            <span className="hidden md:block">{session.totalSets} sets</span>
+
+          {stats.length > 0 && (
+            <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+              {stats.map(({ icon: Icon, text }) => (
+                <li
+                  key={text}
+                  className="inline-flex items-center gap-1 tabular-nums"
+                >
+                  <Icon size={12} aria-hidden="true" />
+                  {text}
+                </li>
+              ))}
+            </ul>
           )}
         </div>
+
+        <ChevronRightIcon
+          size={18}
+          aria-hidden="true"
+          className="hidden sm:block self-center shrink-0 text-gray-300 transition-transform group-hover:translate-x-0.5 group-hover:text-orange-500 dark:text-zinc-600"
+        />
       </Link>
 
-      {confirming ? (
-        <div className="flex items-center gap-3 px-3 shrink-0">
-          <button
-            onClick={() => {
-              onDelete();
-              setConfirming(false);
-            }}
-            disabled={isDeleting}
-            className="px-2 py-1.5 text-xs font-semibold text-red-600 bg-white rounded-lg cursor-pointer hover:text-white hover:bg-red-500 disabled:opacity-40"
-          >
-            {isDeleting ? "Deleting..." : "Delete"}
-          </button>
-          <button
-            onClick={() => setConfirming(false)}
-            className="px-2 py-1.5 w-16 text-xs text-gray-400 dark:text-gray-300 border cursor-pointer rounded-lg hover:border-black hover:text-black"
-          >
-            No
-          </button>
-        </div>
-      ) : (
-        <button
-          onClick={() => setConfirming(true)}
-          className="px-5 py-4 font-bold cursor-pointer rounded-lg text-red-500 hover:bg-red-500 hover:text-white transition-colors text-lg sm:px-3 sm:py-0 sm:text-sm"
-          aria-label="Delete log"
-        >
-          ✕
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={onDelete}
+        aria-label={`Delete ${formatSessionTitle(session)}`}
+        className="shrink-0 self-start m-2 size-9 grid place-items-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+      >
+        <Trash2Icon size={16} />
+      </button>
     </div>
   );
 }
