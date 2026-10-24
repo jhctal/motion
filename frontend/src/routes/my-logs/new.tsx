@@ -1,6 +1,11 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  redirect,
+  useLocation,
+  useNavigate,
+} from "@tanstack/react-router";
 import { ClockIcon, TriangleAlertIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   useListExercises,
   type Exercise,
@@ -113,6 +118,18 @@ function NewLog() {
       },
     ]);
   }
+
+  // "Add to a new workout" on an exercise page links here with ?exercise=<id>
+  const location = useLocation();
+  const preselectId = new URLSearchParams(location.search).get("exercise");
+  const preselected = useRef(false);
+  useEffect(() => {
+    if (preselected.current || !preselectId || !allExercises) return;
+    preselected.current = true;
+    handleAddExercise(preselectId);
+    // runs once, as soon as the exercise list has loaded
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allExercises, preselectId]);
 
   function removeExercise(uid: string) {
     setSelectedExercises((prev) => prev.filter((ex) => ex.uid !== uid));

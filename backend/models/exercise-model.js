@@ -7,6 +7,8 @@ const exerciseSchema = new mongoose.Schema(
     name: { type: String, required: true },
     description: String,
     image: String,
+    // start and finish photos, e.g. /exercise-images/Pushups/0.jpg
+    images: [String],
     category: {
       type: String,
       enum: ["strength", "cardio", "flexibility", "balance", "sports"],
