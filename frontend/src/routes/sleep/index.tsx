@@ -13,6 +13,7 @@ import { SleepChart } from "../../ui/sleep/sleep-chart";
 import { SleepLogList } from "../../ui/sleep/sleep-log-list";
 import { LogSleepModal } from "../../ui/sleep/log-sleep-modal";
 import { SleepyArt } from "../../ui/sleep/sleepy-art";
+import { FallingSand } from "../../ui/sleep/falling-sand";
 import { QUALITY_STYLES } from "../../ui/sleep/quality";
 import { formatSleep, groupByNight, lastNightKey } from "../../utils/sleep";
 
@@ -33,90 +34,103 @@ function RouteComponent() {
 
   return (
     <PageWrapper>
-      <div className="flex flex-col gap-4 max-w-6xl">
-        {isEmpty ? (
-          <>
-            <h1 className="font-semibold text-xl">Sleep</h1>
-            <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-gray-300 px-6 py-12 text-center dark:border-zinc-700">
-              <SleepyArt className="w-64 max-w-full h-auto" />
-              <div className="flex flex-col gap-1 max-w-sm">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  No sleep logged yet
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Muscles recover while you sleep. Log your nights to see your
-                  averages, schedule and how often you hit 8 hours.
-                </p>
-              </div>
-              <Button className="gap-1.5" onClick={() => setLogOpen(true)}>
-                <PlusIcon size={16} aria-hidden="true" />
-                Log last night
-              </Button>
-            </div>
-          </>
-        ) : (
-          <>
-            <section className="relative overflow-hidden rounded-xl border border-orange-100 bg-gradient-to-br from-orange-50 via-amber-50/60 to-white dark:border-zinc-800 dark:from-orange-500/10 dark:via-zinc-900 dark:to-zinc-900">
-              <div className="relative z-10 flex flex-col gap-4 p-6 sm:max-w-[60%]">
-                <div className="flex flex-col gap-1">
-                  <h1 className="font-semibold text-2xl text-gray-900 dark:text-white">
-                    Sleep
-                  </h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Recovery starts the night before.
-                  </p>
+      {/* the sand column only appears once the page is wide enough for it
+          beside the full-width content (sized by the page, not the screen,
+          so it follows the sidebar collapsing too) */}
+      <div className="@container">
+        <div className="flex gap-6">
+          <div className="flex flex-col gap-4 w-full max-w-6xl min-w-0">
+            {isEmpty ? (
+              <>
+                <h1 className="font-semibold text-xl">Sleep</h1>
+                <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-gray-300 px-6 py-12 text-center dark:border-zinc-700">
+                  <SleepyArt className="w-64 max-w-full h-auto" />
+                  <div className="flex flex-col gap-1 max-w-sm">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      No sleep logged yet
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Muscles recover while you sleep. Log your nights to see
+                      your averages, schedule and how often you hit 8 hours.
+                    </p>
+                  </div>
+                  <Button className="gap-1.5" onClick={() => setLogOpen(true)}>
+                    <PlusIcon size={16} aria-hidden="true" />
+                    Log last night
+                  </Button>
                 </div>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {isLoading ? (
-                    "\u00a0"
-                  ) : lastNight ? (
-                    <>
-                      Last night you slept{" "}
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        {formatSleep(lastNight.minutes)}
-                      </span>
-                      {" · "}
-                      {QUALITY_STYLES[
-                        lastNight.quality
-                      ].label.toLowerCase()}{" "}
-                      quality
-                    </>
-                  ) : (
-                    "Nothing logged for last night yet."
-                  )}
-                </p>
-                <Button
-                  className="gap-1.5 w-fit"
-                  onClick={() => setLogOpen(true)}
-                >
-                  <PlusIcon size={16} aria-hidden="true" />
-                  Log sleep
-                </Button>
-              </div>
-              {/* sits behind the text on phones, beside it from sm up */}
-              <SleepyArt className="absolute -right-6 top-1/2 -translate-y-1/2 w-56 opacity-40 sm:opacity-100 sm:w-72 sm:right-4 lg:right-10" />
-            </section>
+              </>
+            ) : (
+              <>
+                <section className="relative overflow-hidden rounded-xl border border-orange-100 bg-gradient-to-br from-orange-50 via-amber-50/60 to-white dark:border-zinc-800 dark:from-orange-500/10 dark:via-zinc-900 dark:to-zinc-900">
+                  <div className="relative z-10 flex flex-col gap-4 p-6 sm:max-w-[60%]">
+                    <div className="flex flex-col gap-1">
+                      <h1 className="font-semibold text-2xl text-gray-900 dark:text-white">
+                        Sleep
+                      </h1>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Recovery starts the night before.
+                      </p>
+                    </div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      {isLoading ? (
+                        "\u00a0"
+                      ) : lastNight ? (
+                        <>
+                          Last night you slept{" "}
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            {formatSleep(lastNight.minutes)}
+                          </span>
+                          {" · "}
+                          {QUALITY_STYLES[
+                            lastNight.quality
+                          ].label.toLowerCase()}{" "}
+                          quality
+                        </>
+                      ) : (
+                        "Nothing logged for last night yet."
+                      )}
+                    </p>
+                    <Button
+                      className="gap-1.5 w-fit"
+                      onClick={() => setLogOpen(true)}
+                    >
+                      <PlusIcon size={16} aria-hidden="true" />
+                      Log sleep
+                    </Button>
+                  </div>
+                  {/* sits behind the text on phones, beside it from sm up */}
+                  <SleepyArt className="absolute -right-6 top-1/2 -translate-y-1/2 w-56 opacity-40 sm:opacity-100 sm:w-72 sm:right-4 lg:right-10" />
+                </section>
 
-            <SleepStats nights={nights} isLoading={isLoading} />
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-              <div className="lg:col-span-3">
-                <SleepChart nights={nights} isLoading={isLoading} />
-              </div>
-              {/* On desktop the list is taken out of flow so the chart alone
+                <SleepStats nights={nights} isLoading={isLoading} />
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                  <div className="lg:col-span-3">
+                    <SleepChart nights={nights} isLoading={isLoading} />
+                  </div>
+                  {/* On desktop the list is taken out of flow so the chart alone
                   sets the row height; the list matches it and scrolls */}
-              <div className="lg:col-span-2 lg:relative">
-                <SleepLogList
-                  className="max-h-[32rem] lg:max-h-none lg:absolute lg:inset-0"
-                  logs={logs}
-                  isLoading={isLoading}
-                  onEdit={setEditing}
-                  onDelete={(id, options) => deleteLog.mutate(id, options)}
-                  isDeleting={deleteLog.isPending}
-                />
-              </div>
-            </div>
-          </>
-        )}
+                  <div className="lg:col-span-2 lg:relative">
+                    <SleepLogList
+                      className="max-h-[32rem] lg:max-h-none lg:absolute lg:inset-0"
+                      logs={logs}
+                      isLoading={isLoading}
+                      onEdit={setEditing}
+                      onDelete={(id, options) => deleteLog.mutate(id, options)}
+                      isDeleting={deleteLog.isPending}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          <aside
+            aria-hidden="true"
+            className="hidden @min-[86rem]:block flex-1 min-w-48 sticky top-0 self-start h-[calc(100dvh-48px-5rem)]"
+          >
+            <FallingSand />
+          </aside>
+        </div>
       </div>
 
       <LogSleepModal open={logOpen} onClose={() => setLogOpen(false)} />

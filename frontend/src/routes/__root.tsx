@@ -24,7 +24,10 @@ function RootLayout() {
       <MobileNav open={menuOpen} onClose={() => setMenuOpen(false)} />
       <div className="h-dvh flex-1 min-w-0">
         <TopBar onMenuOpen={() => setMenuOpen(true)} />
-        <div className="h-[calc(100dvh-48px)] bg-white dark:bg-zinc-800 dark:text-white pt-6 pb-16 md:pb-6 px-4 overflow-auto">
+        {/* relative: contains absolutely positioned descendants (e.g.
+            sr-only text). Without it they're placed against the page, and
+            on a long mobile page they stretch it with blank space. */}
+        <div className="relative h-[calc(100dvh-48px)] bg-white dark:bg-zinc-800 dark:text-white pt-6 pb-16 md:pb-6 px-4 overflow-auto">
           <Outlet />
         </div>
       </div>
