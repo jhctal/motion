@@ -698,7 +698,7 @@ function SetStepper({
         <button
           type="button"
           onClick={dec}
-          className="w-11 h-full border-r flex items-center justify-center text-2xl text-gray-400 dark:text-gray-300 select-none shrink-0 touch-manipulation transition-colors duration-150 active:duration-0 active:bg-orange-500 active:text-white"
+          className="w-11 h-full border-r flex items-center justify-center text-2xl text-gray-400 dark:text-gray-300 select-none shrink-0 transition-colors duration-150 active:duration-0 active:bg-orange-500 active:text-white"
         >
           −
         </button>
@@ -708,7 +708,7 @@ function SetStepper({
         <button
           type="button"
           onClick={inc}
-          className="w-11 h-full border-l flex items-center justify-center text-2xl text-gray-400 dark:text-gray-300 select-none shrink-0 touch-manipulation transition-colors duration-150 active:duration-0 active:bg-orange-500 active:text-white"
+          className="w-11 h-full border-l flex items-center justify-center text-2xl text-gray-400 dark:text-gray-300 select-none shrink-0 transition-colors duration-150 active:duration-0 active:bg-orange-500 active:text-white"
         >
           +
         </button>
@@ -720,7 +720,7 @@ function SetStepper({
               key={s}
               type="button"
               onClick={() => setActiveStep(s)}
-              className={`py-1 rounded text-xs font-medium h-11 lg:h-6 touch-manipulation transition-colors duration-150 active:duration-0 active:bg-orange-500 active:text-white active:border-orange-500 ${
+              className={`py-1 rounded text-xs font-medium h-11 lg:h-6 transition-colors duration-150 active:duration-0 active:bg-orange-500 active:text-white active:border-orange-500 ${
                 activeStep === s
                   ? "bg-orange-500 text-black"
                   : "border border-black text-gray-400 dark:text-gray-300 hover:border-orange-400"
@@ -740,7 +740,7 @@ function SetStepper({
               onClick={() =>
                 setValue(name as unknown as Parameters<typeof setValue>[0], p)
               }
-              className={`py-1 h-14 lg:h-6 rounded text-xs font-medium touch-manipulation transition-colors duration-150 active:duration-0 active:bg-orange-500 active:text-white active:border-orange-500 ${
+              className={`py-1 h-14 lg:h-6 rounded text-xs font-medium transition-colors duration-150 active:duration-0 active:bg-orange-500 active:text-white active:border-orange-500 ${
                 val === p
                   ? "bg-orange-500 text-black"
                   : "border border-black text-gray-400 dark:text-gray-300 hover:border-orange-400"

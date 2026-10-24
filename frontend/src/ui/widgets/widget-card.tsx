@@ -59,9 +59,15 @@ export function WidgetCard({
 
 type SegmentedControlProps<T extends string> = {
   label: string;
-  options: readonly { label: string; value: T }[];
+  options: readonly {
+    label: string;
+    value: T;
+    icon?: ComponentType<{ size?: number; "aria-hidden"?: boolean }>;
+  }[];
   value: T;
   onChange: (value: T) => void;
+  // "md" for page-level switchers, like the logs layout
+  size?: "sm" | "md";
 };
 
 // Small pill switcher for time periods. One highlight sits behind the
@@ -71,6 +77,7 @@ export function SegmentedControl<T extends string>({
   options,
   value,
   onChange,
+  size = "sm",
 }: SegmentedControlProps<T>) {
   const groupRef = useRef<HTMLDivElement>(null);
   const [pill, setPill] = useState<{ left: number; width: number } | null>(
@@ -120,21 +127,23 @@ export function SegmentedControl<T extends string>({
           style={{ width: pill.width, translate: `${pill.left}px 0` }}
         />
       )}
-      {options.map((o) => (
+      {options.map(({ label, value: optionValue, icon: Icon }) => (
         <button
-          key={o.value}
+          key={optionValue}
           type="button"
           role="radio"
-          aria-checked={value === o.value}
-          onClick={() => onChange(o.value)}
+          aria-checked={value === optionValue}
+          onClick={() => onChange(optionValue)}
           className={cn(
-            "relative px-2 py-0.5 rounded-md text-xs font-medium transition-colors duration-200",
-            value === o.value
+            "relative inline-flex items-center gap-1.5 rounded-md font-medium transition-colors duration-200 cursor-pointer",
+            size === "md" ? "h-7 px-2.5 text-sm" : "px-2 py-0.5 text-xs",
+            value === optionValue
               ? "text-gray-900 dark:text-white"
               : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white",
           )}
         >
-          {o.label}
+          {Icon && <Icon size={size === "md" ? 14 : 12} aria-hidden={true} />}
+          {label}
         </button>
       ))}
     </div>

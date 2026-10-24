@@ -2,6 +2,12 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Stops double-tap zoom (e.g. tapping +/- quickly) while keeping pinch zoom
+   for accessibility. Fields are 16px on mobile so iOS doesn't zoom on focus. */
+html {
+  touch-action: manipulation;
+}
+
 /* Count-up numbers in pure CSS. Set --to on the element; registering --num
    as an integer lets the browser interpolate it, and counter() prints it.
    Counters only print whole numbers without separators, so CountUp splits
