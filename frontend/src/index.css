@@ -39,8 +39,29 @@
   }
 }
 
+/* Exercise photos: fade the finish frame in and out over the start frame
+   so the pair reads as the movement */
+@keyframes exercise-loop {
+  0%,
+  35% {
+    opacity: 0;
+  }
+  50%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.exercise-loop {
+  animation: exercise-loop 2.4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .count-up {
+  .count-up,
+  .exercise-loop {
     animation: none;
   }
 }

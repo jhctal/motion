@@ -39,6 +39,7 @@ export const Route = createFileRoute("/exercises/")({
 });
 
 const ALL = "all";
+const DIFFICULTIES = ["beginner", "intermediate", "advanced"];
 
 function ExerciseIndex() {
   const { data: profile } = useUserProfile();
@@ -50,6 +51,7 @@ function ExerciseIndex() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState(ALL);
   const [muscle, setMuscle] = useState(ALL);
+  const [difficulty, setDifficulty] = useState(ALL);
 
   const isAdmin = profile?.isAdmin ?? false;
   const all = useMemo(() => exercises ?? [], [exercises]);
@@ -65,6 +67,7 @@ function ExerciseIndex() {
     const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
     return all.filter((ex) => {
       if (muscle !== ALL && ex.mainTargetMuscle !== muscle) return false;
+      if (difficulty !== ALL && ex.difficulty !== difficulty) return false;
       const haystack = [
         ex.name,
         ex.mainTargetMuscle,
@@ -74,7 +77,7 @@ function ExerciseIndex() {
         .toLowerCase();
       return words.every((w) => haystack.includes(w));
     });
-  }, [all, query, muscle]);
+  }, [all, query, muscle, difficulty]);
 
   const categoryCounts = searched.reduce<Record<string, number>>((acc, ex) => {
     const key = ex.category ?? "other";
@@ -91,12 +94,14 @@ function ExerciseIndex() {
     (acc[ex.category ?? "other"] ??= []).push(ex);
     return acc;
   }, {});
-  const filtering = query !== "" || category !== ALL || muscle !== ALL;
+  const filtering =
+    query !== "" || category !== ALL || muscle !== ALL || difficulty !== ALL;
 
   function clearFilters() {
     setQuery("");
     setCategory(ALL);
     setMuscle(ALL);
+    setDifficulty(ALL);
   }
 
   return (
@@ -151,20 +156,37 @@ function ExerciseIndex() {
                 className="pl-9"
               />
             </div>
-            <div className="sm:w-48">
-              <Select
-                aria-label="Filter by muscle"
-                value={muscle}
-                onChange={(e) => setMuscle(e.target.value)}
-                className="capitalize"
-              >
-                <option value={ALL}>All muscles</option>
-                {muscles.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </Select>
+            {/* side by side on phones, inline with search from sm up */}
+            <div className="grid grid-cols-2 gap-3 sm:flex">
+              <div className="sm:w-44">
+                <Select
+                  aria-label="Filter by muscle"
+                  value={muscle}
+                  onChange={(e) => setMuscle(e.target.value)}
+                  className="capitalize"
+                >
+                  <option value={ALL}>All muscles</option>
+                  {muscles.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="sm:w-40">
+                <Select
+                  aria-label="Filter by difficulty"
+                  value={difficulty}
+                  onChange={(e) => setDifficulty(e.target.value)}
+                >
+                  <option value={ALL}>All levels</option>
+                  {DIFFICULTIES.map((d) => (
+                    <option key={d} value={d}>
+                      {d.charAt(0).toUpperCase() + d.slice(1)}
+                    </option>
+                  ))}
+                </Select>
+              </div>
             </div>
             <Link to="/exercises/new" className="sm:self-stretch">
               <Button className="w-full h-full min-h-11 gap-1.5">

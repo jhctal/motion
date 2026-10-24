@@ -122,14 +122,25 @@ function NewLog() {
   // "Add to a new workout" on an exercise page links here with ?exercise=<id>
   const location = useLocation();
   const preselectId = new URLSearchParams(location.search).get("exercise");
+  const preselectTemplate = new URLSearchParams(location.search).get(
+    "template",
+  );
   const preselected = useRef(false);
   useEffect(() => {
-    if (preselected.current || !preselectId || !allExercises) return;
+    if (preselected.current) return;
+    // "Start this workout" on a template page links here with ?template=<id>
+    if (preselectTemplate) {
+      if (!workouts) return;
+      preselected.current = true;
+      handleTemplateChange(preselectTemplate);
+      return;
+    }
+    if (!preselectId || !allExercises) return;
     preselected.current = true;
     handleAddExercise(preselectId);
     // runs once, as soon as the exercise list has loaded
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allExercises, preselectId]);
+  }, [allExercises, preselectId, workouts, preselectTemplate]);
 
   function removeExercise(uid: string) {
     setSelectedExercises((prev) => prev.filter((ex) => ex.uid !== uid));
@@ -223,7 +234,8 @@ function NewLog() {
 
     const session = await createSession.mutateAsync({
       name,
-      basedOnWorkout: selectedTemplateId || undefined,
+      // the backend stores the link as workoutTemplate
+      workoutTemplate: selectedTemplateId || undefined,
       exercises: sessionExercises,
     });
 

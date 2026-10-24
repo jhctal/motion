@@ -21,6 +21,7 @@ import Button from "../../ui/button/button";
 import MuscleTag from "../../ui/muscle-tag";
 import BodyMap from "../../ui/body-map";
 import { LastPerformanceLine } from "../../ui/exercise-info";
+import { ExerciseImages } from "../../ui/exercise-images";
 import {
   CategoryIcon,
   CompoundBadge,
@@ -159,14 +160,6 @@ function ExerciseView() {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
           {/* Main column */}
           <div className="flex flex-col gap-6 min-w-0">
-            {data.image && (
-              <img
-                src={data.image}
-                alt={`${data.name} demonstration`}
-                className="w-full max-h-80 object-cover rounded-xl border border-gray-200 dark:border-zinc-800"
-              />
-            )}
-
             {data.description && (
               <p className="text-base leading-relaxed text-gray-700 dark:text-gray-300">
                 {data.description}
@@ -197,6 +190,10 @@ function ExerciseView() {
                 </ol>
               )}
             </WidgetCard>
+
+            {data.images && data.images.length > 0 && (
+              <ExerciseImages name={data.name} images={data.images} />
+            )}
           </div>
 
           {/* Sidebar */}

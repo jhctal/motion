@@ -41,7 +41,7 @@ export const useCreateWorkoutSession = () => {
   return useMutation({
     mutationFn: async (data: {
       name: string;
-      basedOnWorkout?: string;
+      workoutTemplate?: string;
       exercises?: unknown[];
     }) => {
       const response = await axios.post("/api/workout-sessions", data);
