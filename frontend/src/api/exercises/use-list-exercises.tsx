@@ -9,6 +9,8 @@ type Exercise = {
   duration: number;
   equipmentNeeded: string[];
   image: string;
+  // start and finish photos
+  images?: string[];
   mainTargetMuscle: string;
   muscleGroups: string[];
   isCompound: boolean;
