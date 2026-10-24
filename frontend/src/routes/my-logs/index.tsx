@@ -1,17 +1,10 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
-  ChevronRightIcon,
-  CircleCheckIcon,
-  CircleDashedIcon,
-  CirclePlayIcon,
-  CircleSlashIcon,
-  ClockIcon,
+  CalendarDaysIcon,
   DownloadIcon,
-  DumbbellIcon,
-  LayersIcon,
+  LayoutGridIcon,
   ListIcon,
   PlusIcon,
-  StarIcon,
   Trash2Icon,
   UploadIcon,
   XIcon,
@@ -22,20 +15,36 @@ import useListLogs, {
 } from "../../api/logged-workouts/use-list-logs";
 import { useDeleteLog } from "../../api/logged-workouts/use-delete-log";
 import PageWrapper from "../../ui/page-wrapper/page-wrapper";
-import cn from "../../utils/cn";
-import {
-  formatCompact,
-  formatDate,
-  formatDuration,
-  formatSessionTitle,
-} from "../../utils/format-date";
-import MuscleTag from "../../ui/muscle-tag";
+import { formatDate, formatSessionTitle } from "../../utils/format-date";
 import ConfirmModal from "../../ui/modal/confirm-modal";
-import { Skeleton } from "../../ui/widgets/widget-card";
+import { SegmentedControl, Skeleton } from "../../ui/widgets/widget-card";
 import Button from "../../ui/button/button";
 import ExportLogsModal from "../../ui/export-logs-modal";
 import useImportLogs from "../../api/logged-workouts/use-import-logs";
 import { ImportedSession, readBackupFile } from "../../utils/import-logs";
+import { SessionCard, SessionTile } from "../../ui/workout-logs/session-card";
+import { LogsCalendar } from "../../ui/workout-logs/logs-calendar";
+import { sessionDate } from "../../ui/workout-logs/session-info";
+
+const VIEWS = [
+  { value: "list", label: "List", icon: ListIcon },
+  { value: "grid", label: "Grid", icon: LayoutGridIcon },
+  { value: "calendar", label: "Calendar", icon: CalendarDaysIcon },
+] as const;
+
+type View = (typeof VIEWS)[number]["value"];
+
+const VIEW_KEY = "logs-view";
+
+// Remembered per browser; storage can be blocked, so fall back to the list
+function readView(): View {
+  try {
+    const stored = localStorage.getItem(VIEW_KEY);
+    return VIEWS.find((v) => v.value === stored)?.value ?? "list";
+  } catch {
+    return "list";
+  }
+}
 
 export const Route = createFileRoute("/my-logs/")({
   beforeLoad: async () => {
@@ -56,6 +65,16 @@ function RouteComponent() {
   );
   const [importError, setImportError] = useState<string | null>(null);
   const [toDelete, setToDelete] = useState<WorkoutSession | null>(null);
+  const [view, setView] = useState<View>(readView);
+
+  const changeView = (next: View) => {
+    setView(next);
+    try {
+      localStorage.setItem(VIEW_KEY, next);
+    } catch {
+      // not remembered; fine
+    }
+  };
 
   const sessions = data?.workoutSessions ?? [];
   const months = groupByMonth(sessions);
@@ -64,10 +83,13 @@ function RouteComponent() {
     <PageWrapper pageName="Your workouts">
       <div className="flex flex-col gap-6 mt-1">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {sessions.length} {sessions.length === 1 ? "workout" : "workouts"}{" "}
-            logged
-          </p>
+          <SegmentedControl
+            label="Layout"
+            size="md"
+            options={VIEWS}
+            value={view}
+            onChange={changeView}
+          />
           <div className="flex flex-wrap items-center gap-2">
             <ImportButton
               onFileRead={setPendingImport}
@@ -114,7 +136,9 @@ function RouteComponent() {
           />
         )}
 
-        {isLoading ? (
+        {view === "calendar" ? (
+          <LogsCalendar onDelete={setToDelete} />
+        ) : isLoading ? (
           <div className="flex flex-col gap-3">
             {Array.from({ length: 4 }, (_, i) => (
               <Skeleton key={i} className="h-24 rounded-xl" />
@@ -138,16 +162,32 @@ function RouteComponent() {
                   {items.length} {items.length === 1 ? "workout" : "workouts"}
                 </span>
               </h2>
-              <ul className="flex flex-col gap-2">
-                {items.map((session) => (
-                  <li key={session._id} className="min-w-0">
-                    <SessionCard
-                      session={session}
-                      onDelete={() => setToDelete(session)}
-                    />
-                  </li>
-                ))}
-              </ul>
+              {view === "grid" ? (
+                // columns follow the page's width, not the screen's
+                <div className="@container">
+                  <ul className="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3 @[100rem]:grid-cols-4">
+                    {items.map((session) => (
+                      <li key={session._id} className="min-w-0">
+                        <SessionTile
+                          session={session}
+                          onDelete={() => setToDelete(session)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {items.map((session) => (
+                    <li key={session._id} className="min-w-0">
+                      <SessionCard
+                        session={session}
+                        onDelete={() => setToDelete(session)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
           ))
         )}
@@ -181,7 +221,7 @@ function RouteComponent() {
 function groupByMonth(sessions: WorkoutSession[]) {
   const months: { label: string; items: WorkoutSession[] }[] = [];
   for (const session of sessions) {
-    const label = formatDate(session.startedAt ?? session.createdAt, {
+    const label = formatDate(sessionDate(session), {
       month: "long",
       year: "numeric",
     });
@@ -315,164 +355,6 @@ function ImportPanel({
           </Button>
         </>
       )}
-    </div>
-  );
-}
-
-const STATUS = {
-  completed: {
-    label: "Completed",
-    icon: CircleCheckIcon,
-    tile: "bg-green-50 text-green-600 dark:bg-green-500/15 dark:text-green-400",
-    badge:
-      "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/30",
-  },
-  "in-progress": {
-    label: "In progress",
-    icon: CirclePlayIcon,
-    tile: "bg-orange-50 text-orange-500 dark:bg-orange-500/15 dark:text-orange-400",
-    badge:
-      "bg-orange-50 text-orange-700 ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-300 dark:ring-orange-500/30",
-  },
-  planned: {
-    label: "Planned",
-    icon: CircleDashedIcon,
-    tile: "bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-gray-400",
-    badge:
-      "bg-gray-50 text-gray-600 ring-gray-500/20 dark:bg-zinc-800 dark:text-gray-300 dark:ring-zinc-600",
-  },
-  skipped: {
-    label: "Skipped",
-    icon: CircleSlashIcon,
-    tile: "bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-gray-400",
-    badge:
-      "bg-gray-50 text-gray-600 ring-gray-500/20 dark:bg-zinc-800 dark:text-gray-300 dark:ring-zinc-600",
-  },
-} as const;
-
-const statusOf = (status: string) =>
-  STATUS[status as keyof typeof STATUS] ?? STATUS.planned;
-
-function SessionCard({
-  session,
-  onDelete,
-}: {
-  session: WorkoutSession;
-  onDelete: () => void;
-}) {
-  const status = statusOf(session.status);
-  const StatusIcon = status.icon;
-  const isCompleted = session.status === "completed";
-
-  const allSets = session.exercises.flatMap((ex) => ex.sets ?? []);
-  const doneSets = allSets.filter((set) => set.completed).length;
-
-  const muscles = [
-    ...new Set(
-      session.exercises
-        .map((ex) => ex.exercise?.mainTargetMuscle)
-        .filter((m): m is string => !!m),
-    ),
-  ];
-
-  const stats = [
-    isCompleted && session.duration > 0
-      ? { icon: ClockIcon, text: formatDuration(session.duration) }
-      : null,
-    allSets.length > 0
-      ? {
-          icon: LayersIcon,
-          text: isCompleted
-            ? `${doneSets} sets`
-            : `${doneSets}/${allSets.length} sets`,
-        }
-      : null,
-    session.totalWeight > 0
-      ? { icon: DumbbellIcon, text: `${formatCompact(session.totalWeight)} kg` }
-      : null,
-    session.exercises.length > 0
-      ? {
-          icon: ListIcon,
-          text: `${session.exercises.length} ${session.exercises.length === 1 ? "exercise" : "exercises"}`,
-        }
-      : null,
-    session.rating ? { icon: StarIcon, text: `${session.rating}/5` } : null,
-  ].filter((s): s is NonNullable<typeof s> => s !== null);
-
-  return (
-    <div className="group flex items-stretch rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:border-orange-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-orange-500/50">
-      <Link
-        to="/my-logs/$id"
-        params={{ id: session._id }}
-        className="flex-1 min-w-0 flex gap-4 p-4"
-      >
-        <span
-          className={cn(
-            "size-10 shrink-0 grid place-items-center rounded-lg",
-            status.tile,
-          )}
-        >
-          <StatusIcon size={20} aria-hidden="true" />
-        </span>
-
-        <div className="flex-1 min-w-0 flex flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
-            <h3 className="min-w-0 truncate font-semibold capitalize text-gray-900 transition-colors group-hover:text-orange-600 dark:text-white dark:group-hover:text-orange-400">
-              {formatSessionTitle(session)}
-            </h3>
-            <span
-              className={cn(
-                "shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset",
-                status.badge,
-              )}
-            >
-              {status.label}
-            </span>
-          </div>
-
-          {muscles.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1">
-              {muscles.slice(0, 4).map((m) => (
-                <MuscleTag key={m} muscle={m} />
-              ))}
-              {muscles.length > 4 && (
-                <span className="text-xs text-gray-400">
-                  +{muscles.length - 4}
-                </span>
-              )}
-            </div>
-          )}
-
-          {stats.length > 0 && (
-            <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
-              {stats.map(({ icon: Icon, text }) => (
-                <li
-                  key={text}
-                  className="inline-flex items-center gap-1 tabular-nums"
-                >
-                  <Icon size={12} aria-hidden="true" />
-                  {text}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <ChevronRightIcon
-          size={18}
-          aria-hidden="true"
-          className="hidden sm:block self-center shrink-0 text-gray-300 transition-transform group-hover:translate-x-0.5 group-hover:text-orange-500 dark:text-zinc-600"
-        />
-      </Link>
-
-      <button
-        type="button"
-        onClick={onDelete}
-        aria-label={`Delete ${formatSessionTitle(session)}`}
-        className="shrink-0 self-start m-2 size-9 grid place-items-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 dark:hover:bg-red-500/10 dark:hover:text-red-400"
-      >
-        <Trash2Icon size={16} />
-      </button>
     </div>
   );
 }
