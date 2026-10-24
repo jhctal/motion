@@ -196,13 +196,14 @@ function ActiveLog() {
     <FormProvider {...methods}>
       <PageWrapper>
         <BackToLogs />
-        <div className="flex items-center justify-between gap-2 mb-3">
+        {/* Title and download on one line from sm up; download above the title on phones */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
           <div className="font-semibold text-xl capitalize">
             {formatSessionTitle(session)}
           </div>
           {/* Only finished workouts are worth exporting */}
           {isCompleted && (
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="order-first sm:order-none flex flex-wrap items-center gap-2 shrink-0 text-sm text-gray-500 dark:text-gray-400">
               Download this workout:
               <Button
                 variant="outline"
