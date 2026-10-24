@@ -308,6 +308,291 @@
   animation: scale-needle 5s ease-in-out infinite;
 }
 
+/* Dashboard art scenes (ui/widgets/art). Each animated SVG shape turns
+   around its own centre unless it names a pivot in viewBox units. */
+.kettlebell-swing,
+.shoe-jog,
+.shoe-shadow,
+.tape-extend,
+.bottle-wave,
+.bottle-bubble,
+.art-sway,
+.art-tumble,
+.art-glow,
+.art-flutter {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* kettlebell swings from the top of its handle */
+@keyframes kettlebell-swing {
+  0%,
+  100% {
+    transform: rotate(-14deg);
+  }
+  50% {
+    transform: rotate(14deg);
+  }
+}
+
+.kettlebell-swing {
+  transform-box: view-box;
+  transform-origin: 120px 46px;
+  animation: kettlebell-swing 2.4s ease-in-out infinite;
+}
+
+/* running shoe: a quick stride bounce, the shadow tightening as it lifts,
+   and speed lines streaming off behind */
+@keyframes shoe-jog {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  40% {
+    transform: translateY(-12px) rotate(-5deg);
+  }
+  70% {
+    transform: translateY(-4px) rotate(2deg);
+  }
+}
+
+@keyframes shoe-shadow {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  40% {
+    transform: scaleX(0.75);
+    opacity: 0.55;
+  }
+}
+
+@keyframes shoe-speed {
+  0% {
+    transform: translateX(14px);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-18px);
+    opacity: 0;
+  }
+}
+
+.shoe-jog {
+  animation: shoe-jog 1s ease-in-out infinite;
+}
+
+.shoe-shadow {
+  animation: shoe-shadow 1s ease-in-out infinite;
+}
+
+.shoe-speed {
+  animation: shoe-speed 0.9s linear infinite;
+}
+
+/* tape measure: pulled out, held, let go; the spiral winds with it */
+@keyframes tape-extend {
+  0%,
+  8% {
+    transform: translateX(-70px);
+  }
+  38%,
+  78% {
+    transform: translateX(0);
+  }
+  92%,
+  100% {
+    transform: translateX(-70px);
+  }
+}
+
+@keyframes tape-spin {
+  0%,
+  8% {
+    transform: rotate(0deg);
+  }
+  38%,
+  78% {
+    transform: rotate(300deg);
+  }
+  92%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.tape-extend {
+  animation: tape-extend 5s ease-in-out infinite;
+}
+
+.tape-spin {
+  transform-box: view-box;
+  transform-origin: 92px 108px;
+  animation: tape-spin 5s ease-in-out infinite;
+}
+
+/* water bottle: the surface slides by two wave lengths (seamless) and bobs;
+   bubbles rise to the top and pop */
+@keyframes bottle-wave {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-24px, -3px);
+  }
+  100% {
+    transform: translate(-48px, 0);
+  }
+}
+
+@keyframes bottle-bubble {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-58px) scale(1);
+    opacity: 0;
+  }
+}
+
+.bottle-wave {
+  animation: bottle-wave 3s linear infinite;
+}
+
+.bottle-bubble {
+  animation: bottle-bubble 2.8s ease-in infinite;
+}
+
+/* Seasonal particles. Travel moves them across the card (durations and
+   delays are set per particle); the inner motion runs on its own beat. */
+@keyframes art-fall {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(200px);
+    opacity: 0;
+  }
+}
+
+@keyframes art-drift {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  10%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(60px, 200px);
+    opacity: 0;
+  }
+}
+
+@keyframes art-rise {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  20%,
+  70% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate(10px, -80px);
+  }
+  100% {
+    transform: translate(-6px, -160px);
+    opacity: 0;
+  }
+}
+
+@keyframes art-sway {
+  0%,
+  100% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes art-flutter {
+  0%,
+  100% {
+    transform: translateX(-10px) rotate(-40deg);
+  }
+  50% {
+    transform: translateX(10px) rotate(40deg);
+  }
+}
+
+@keyframes art-tumble {
+  from {
+    transform: rotate(0deg) translateX(3px);
+  }
+  to {
+    transform: rotate(360deg) translateX(3px);
+  }
+}
+
+@keyframes art-glow {
+  0%,
+  100% {
+    transform: scale(0.7);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+.art-fall {
+  animation: art-fall 10s linear infinite;
+}
+
+.art-drift {
+  animation: art-drift 10s linear infinite;
+}
+
+.art-rise {
+  animation: art-rise 10s ease-in-out infinite;
+}
+
+.art-sway {
+  animation: art-sway 3s ease-in-out infinite;
+}
+
+.art-flutter {
+  animation: art-flutter 2.6s ease-in-out infinite;
+}
+
+.art-tumble {
+  animation: art-tumble 4s linear infinite;
+}
+
+.art-glow {
+  animation: art-glow 1.8s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .count-up,
   .auth-hint,
@@ -323,6 +608,23 @@
   .lift-spin,
   .scale-needle {
     animation: none;
+  }
+
+  .kettlebell-swing,
+  .shoe-jog,
+  .shoe-shadow,
+  .shoe-speed,
+  .tape-extend,
+  .tape-spin,
+  .bottle-wave,
+  .bottle-bubble {
+    animation: none;
+  }
+
+  /* seasonal particles only work in motion; without it they'd sit in a
+     row at the edge of the card */
+  .art-particles {
+    display: none;
   }
 
   /* effort lines only make sense mid-lift */
