@@ -135,8 +135,24 @@
   animation-direction: reverse;
 }
 
+/* Mobile auth hero: gentle pulse on the "tap anywhere" hint */
+@keyframes auth-hint {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.auth-hint {
+  animation: auth-hint 2.4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .count-up,
+  .auth-hint,
   .exercise-loop,
   .auth-blob,
   .auth-dots,
