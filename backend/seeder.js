@@ -7,13 +7,25 @@ import users from "./data/users.js";
 import exercises from "./data/exercises.js";
 import workouts from "./data/workouts.js";
 import templateExercises from "./data/template-exercises.js";
+import exerciseImages from "./data/exercise-images.js";
 import User from "./models/user-model.js";
 import Exercise from "./models/exercise-model.js";
 import WorkoutTemplate from "./models/workout-template-model.js";
 import TemplateExercise from "./models/template-exercise-model.js";
 import connectDB from "./config/db.js";
 
-connectDB();
+
+// Start/finish photo paths for an exercise, from data/exercise-images.js
+const imagesFor = (name) => {
+  const id = exerciseImages[name];
+  return id
+    ? [`/exercise-images/${id}/0.jpg`, `/exercise-images/${id}/1.jpg`]
+    : [];
+};
+const withImages = (exercise) => ({
+  ...exercise,
+  images: imagesFor(exercise.name),
+});
 
 const importData = async () => {
   try {
@@ -25,7 +37,9 @@ const importData = async () => {
     const createdUsers = await User.insertMany(users);
     const adminUser = createdUsers[0]._id;
 
-    const createdExercises = await Exercise.insertMany(exercises);
+    const createdExercises = await Exercise.insertMany(
+      exercises.map(withImages)
+    );
 
     const exerciseMap = {};
     createdExercises.forEach((exercise) => {
@@ -101,7 +115,7 @@ const upsertExercises = async () => {
     for (const exercise of exercises) {
       const result = await Exercise.updateOne(
         { name: exercise.name },
-        { $setOnInsert: exercise },
+        { $setOnInsert: withImages(exercise) },
         { upsert: true }
       );
       if (result.upsertedCount > 0) {
@@ -111,6 +125,31 @@ const upsertExercises = async () => {
       }
     }
     console.log(`Exercises seeded: ${inserted} inserted, ${skipped} already existed.`.green.inverse);
+    process.exit();
+  } catch (error) {
+    console.error(`${error}`.red.inverse);
+    process.exit(1);
+  }
+};
+
+// Sets photos on exercises already in the database, matched by name.
+// Leaves everything else alone; safe to run repeatedly.
+const updateExerciseImages = async () => {
+  try {
+    let updated = 0;
+    let missing = 0;
+    for (const exercise of exercises) {
+      const result = await Exercise.updateOne(
+        { name: exercise.name },
+        { $set: { images: imagesFor(exercise.name) } }
+      );
+      if (result.matchedCount === 0) missing++;
+      else if (result.modifiedCount > 0) updated++;
+    }
+    console.log(
+      `Exercise images: ${updated} updated, ${missing} not in database.`.green
+        .inverse
+    );
     process.exit();
   } catch (error) {
     console.error(`${error}`.red.inverse);
@@ -173,12 +212,24 @@ const upsertTemplateExercises = async () => {
   }
 };
 
-if (process.argv[2] === "--destroy") {
-  destroyData();
-} else if (process.argv[2] === "--exercises-only") {
-  upsertExercises();
-} else if (process.argv[2] === "--templates-only") {
-  upsertTemplateExercises();
+// Destructive commands need an explicit flag; running with no flag (or an
+// unknown one) only prints usage, so a typo can't wipe the database.
+const commands = {
+  "--reset": [importData, "DELETE all users, exercises and templates, then re-seed"],
+  "--destroy": [destroyData, "DELETE all users, exercises and templates"],
+  "--exercises-only": [upsertExercises, "insert seed exercises that are missing"],
+  "--exercise-images": [updateExerciseImages, "set photos on existing exercises"],
+  "--templates-only": [upsertTemplateExercises, "insert missing template exercises"],
+};
+
+const command = commands[process.argv[2]];
+if (command) {
+  connectDB();
+  command[0]();
 } else {
-  importData();
+  console.log("Usage: node seeder.js <flag>\n");
+  for (const [flag, [, description]] of Object.entries(commands)) {
+    console.log(`  ${flag.padEnd(20)} ${description}`);
+  }
+  process.exit(1);
 }
