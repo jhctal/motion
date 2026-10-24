@@ -22,8 +22,7 @@ const FEATURES = [
   },
 ];
 
-// Theme toggle bottom left, copyright bottom right. Clicks stop here so toggling the
-// theme on the mobile hero doesn't also dismiss it.
+// Theme toggle bottom left, copyright bottom right
 function ThemeCopyright({
   className,
   toggleClassName,
@@ -33,10 +32,7 @@ function ThemeCopyright({
 }) {
   const { theme, toggleTheme } = useTheme();
   return (
-    <div
-      onClick={(e) => e.stopPropagation()}
-      className={cn("flex items-center justify-between text-sm", className)}
-    >
+    <div className={cn("flex items-center justify-between text-sm", className)}>
       <ThemeIconToggle
         theme={theme}
         onToggle={toggleTheme}
@@ -145,8 +141,9 @@ export function AuthLayout({
             </p>
           </div>
           <ThemeCopyright
-            className="text-orange-100/80"
-            toggleClassName="hover:text-white max-lg:text-white max-lg:bg-white/15 max-lg:active:bg-white/25"
+            // the hero is always orange, so the toggle waits for the form
+            className="text-orange-100/80 max-lg:justify-end"
+            toggleClassName="hover:text-white max-lg:hidden"
           />
         </div>
       </aside>
