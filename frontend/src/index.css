@@ -150,13 +150,77 @@
   animation: auth-hint 2.4s ease-in-out infinite;
 }
 
+/* Sleep page artwork (SleepyArt): Zs drift up and to the right while
+   growing and fading, stars twinkle, the moon bobs gently. transform-box
+   makes each SVG shape scale and rotate around its own centre. */
+@keyframes sleep-z {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5) rotate(-12deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(22px, -40px) scale(1.15) rotate(12deg);
+  }
+}
+
+@keyframes sleep-twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes sleep-moon {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(-3deg);
+  }
+}
+
+.sleep-z,
+.sleep-twinkle,
+.sleep-moon {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.sleep-z {
+  animation: sleep-z 6s ease-in-out infinite;
+}
+
+.sleep-twinkle {
+  animation: sleep-twinkle 2.8s ease-in-out infinite;
+}
+
+.sleep-moon {
+  animation: sleep-moon 6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .count-up,
   .auth-hint,
   .exercise-loop,
   .auth-blob,
   .auth-dots,
-  .auth-ring {
+  .auth-ring,
+  .sleep-z,
+  .sleep-twinkle,
+  .sleep-moon {
     animation: none;
   }
 }

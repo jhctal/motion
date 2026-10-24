@@ -25,6 +25,11 @@ sleepLogSchema.index({ user: 1, date: -1 });
 
 sleepLogSchema.pre("save", function (next) {
   if (this.bedTime && this.wakeTime) {
+    // overnight sleep sent with both times on the same day (bed 23:00,
+    // wake 07:00) would come out negative; the wake time is the next morning
+    while (this.wakeTime <= this.bedTime) {
+      this.wakeTime = new Date(this.wakeTime.getTime() + 24 * 60 * 60 * 1000);
+    }
     this.durationMinutes = Math.round(
       (this.wakeTime - this.bedTime) / 1000 / 60
     );
