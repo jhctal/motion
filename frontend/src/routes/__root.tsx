@@ -1,8 +1,6 @@
 import { createRootRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
 import { MobileNav, Sidebar, TopBar } from "../ui";
-import ThemeIconToggle from "../ui/theme-icon-toggle";
-import useTheme from "../hooks/use-theme";
 
 const AUTH_PATHS = ["/auth", "/register"];
 
@@ -10,17 +8,12 @@ function RootLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const isAuthPage = AUTH_PATHS.includes(location.pathname);
-  const { theme, toggleTheme } = useTheme();
 
+  // auth pages render their own theme toggle inside AuthLayout
   if (isAuthPage) {
     return (
       <div className="min-h-dvh text-gray-900 dark:text-white">
         <Outlet />
-        <ThemeIconToggle
-          theme={theme}
-          onToggle={toggleTheme}
-          className="fixed bottom-4 left-4 p-2"
-        />
       </div>
     );
   }

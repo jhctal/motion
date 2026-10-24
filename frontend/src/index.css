@@ -59,9 +59,104 @@
   animation: exercise-loop 2.4s ease-in-out infinite;
 }
 
+/* Auth brand panel background: blobs drift on long, offset loops so the
+   pattern never visibly repeats; the dot grid pans one tile per cycle so
+   the loop is seamless and fades out towards the edges */
+@keyframes auth-drift-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-6rem, 8rem) scale(1.15);
+  }
+}
+
+@keyframes auth-drift-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(8rem, -4rem) scale(0.9);
+  }
+  66% {
+    transform: translate(4rem, 6rem) scale(1.1);
+  }
+}
+
+@keyframes auth-drift-c {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(5rem, -7rem) scale(1.2);
+  }
+}
+
+@keyframes auth-pan {
+  to {
+    background-position: 28px 28px;
+  }
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.auth-blob-a {
+  animation: auth-drift-a 18s ease-in-out infinite;
+}
+
+.auth-blob-b {
+  animation: auth-drift-b 24s ease-in-out infinite;
+}
+
+.auth-blob-c {
+  animation: auth-drift-c 21s ease-in-out infinite;
+}
+
+.auth-dots {
+  background-image: radial-gradient(currentColor 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse at 70% 40%, black, transparent 70%);
+  animation: auth-pan 6s linear infinite;
+}
+
+.auth-ring {
+  animation: auth-spin 60s linear infinite;
+}
+
+.auth-ring-reverse {
+  animation-duration: 40s;
+  animation-direction: reverse;
+}
+
+/* Mobile auth hero: gentle pulse on the "tap anywhere" hint */
+@keyframes auth-hint {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.auth-hint {
+  animation: auth-hint 2.4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .count-up,
-  .exercise-loop {
+  .auth-hint,
+  .exercise-loop,
+  .auth-blob,
+  .auth-dots,
+  .auth-ring {
     animation: none;
   }
 }
